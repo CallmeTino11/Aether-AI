@@ -25,7 +25,7 @@ jobs:
       - name: Unit tests
         run: npm test
 
-  schema:
+  integration:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -36,15 +36,33 @@ jobs:
           --health-cmd pg_isready --health-interval 10s
           --health-timeout 5s --health-retries 5
         ports: ['5432:5432']
+    env:
+      PGPASSWORD: postgres
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/aether
+      # Turns a missing DATABASE_URL into a hard failure instead of 8 silent
+      # skips. Without this, a misconfigured connection string would leave this
+      # job green while testing nothing (DEC-0008).
+      REQUIRE_INTEGRATION: '1'
     steps:
       - uses: actions/checkout@v4
-      - name: Apply migrations and verify tenant isolation
-        env:
-          PGPASSWORD: postgres
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: Apply schema
         run: |
           set -euo pipefail
           psql -h localhost -U postgres -d postgres -c 'create database aether;'
           psql -h localhost -U postgres -d aether -c 'create extension if not exists pgcrypto;'
           psql -h localhost -U postgres -d aether -f supabase/tests/00_local_auth_stub.sql
           psql -h localhost -U postgres -d aether -v ON_ERROR_STOP=1 -f supabase/migrations/0001_core_schema.sql
-          echo "Migration applied cleanly."
+
+      - name: Verify tenant isolation and constraints
+        run: |
+          set -euo pipefail
+          psql -h localhost -U postgres -d aether -f supabase/tests/01_tenant_isolation.sql
+          echo "RLS and constraint checks executed."
+
+      - name: Integration tests (persistence + retriever calibration)
+        run: npm run test:integration

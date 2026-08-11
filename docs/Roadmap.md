@@ -21,7 +21,7 @@ Create the operating system for AI employees that powers millions of businesses 
 - ~~Knowledge-base layer + grounding policy~~ — Done, DEC-0006
 - ~~Receptionist conversation engine~~ — Done (7 tests passing)
 - ~~Database schema + tenant isolation~~ — Done, DEC-0007 (verified on real Postgres)
-- Supabase-backed repositories (persist conversations/messages/leads; replace in-memory retriever with full-text)
+- ~~Supabase-backed repositories + full-text retriever~~ — Done, DEC-0010 (8 integration tests on real Postgres)
 - Web chat widget (first channel integration) + server-side turn endpoint
 - Next.js dashboard shell: hire an employee, upload knowledge, view conversations
 - Second provider adapter (OpenAI) to prove the abstraction against a real second vendor

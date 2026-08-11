@@ -372,4 +372,78 @@ DEC-0005, DEC-0008
 ### Notes
 None.
 
+---
+
+## DEC-0010 — Retriever scoring is coverage-based, not raw ts_rank
+
+**Department:** AI
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+The Postgres retriever scores results by **query-term coverage, squared** (the fraction of the query's stemmed, stop-word-filtered lexemes present in a chunk), using `ts_rank` only to order results of equal coverage. Raw `ts_rank` is explicitly rejected as a scoring basis.
+
+### Reason
+DEC-0006 requires any replacement retriever to be re-calibrated rather than swapped in blind. Measured on the calibration set, raw `ts_rank` returned 0.187 for a clear match and 0.168 for a decent one — everything compressed into a narrow band barely above `MIN_GROUNDING_SCORE` (0.15). Reusing the threshold against it would have been coincidence, and a single longer knowledge document would have pushed a legitimately-grounded answer below the line, silently converting correct answers into escalations. Coverage-squared reproduces the reference retriever's calibrated behaviour on the same 0–1 scale with wide margins: 1.00 clear / 0.44 decent / 0.44 grounded-partial / 0.11 vague / 0.00 irrelevant.
+
+### Impact
+- Product
+- Engineering
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0006, DEC-0007
+
+### Notes
+Calibration is asserted in `src/__tests__/postgres.integration.test.ts`, including a minimum-separation check, so a future scoring change that erodes the safety margin fails CI rather than degrading quietly. A side benefit: partially-matching but genuinely grounded questions ("opening hours on Saturday") now answer instead of over-escalating.
+
+---
+
+## DEC-0011 — Integration tests must fail rather than skip in CI
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Database-backed tests skip locally when `DATABASE_URL` is unset, but CI sets `REQUIRE_INTEGRATION=1`, which turns a missing `DATABASE_URL` into a hard error.
+
+### Reason
+Conditional skipping is right for fast local unit work, but a misconfigured connection string in CI would have left eight integration tests silently skipped and the job green — the same false-confidence failure mode as the subshell bug behind DEC-0008. Verified in all three states: guard on without a database fails, guard off skips cleanly, both set runs 8/8.
+
+### Impact
+- Engineering
+- Infrastructure
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0008
+
+### Notes
+None.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

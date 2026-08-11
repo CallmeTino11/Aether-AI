@@ -24,3 +24,21 @@ export {
   type TurnAudit,
   type TurnResult,
 } from "./application/receptionist-engine.js";
+
+// Persistence ports and infrastructure (session 005)
+export * from "./application/ports.js";
+export {
+  HandleCustomerMessage,
+  type HandleCustomerMessageDeps,
+  type HandleCustomerMessageInput,
+} from "./application/handle-customer-message.js";
+export { PostgresKnowledgeRetriever } from "./knowledge/postgres-retriever.js";
+export type { SqlExecutor } from "./infrastructure/postgres/sql-executor.js";
+export { PgSqlExecutor } from "./infrastructure/postgres/pg-executor.js";
+export {
+  PgBusinessRepository,
+  PgConversationRepository,
+  PgEmployeeRepository,
+  PgKnowledgeRepository,
+  PgLeadRepository,
+} from "./infrastructure/postgres/repositories.js";

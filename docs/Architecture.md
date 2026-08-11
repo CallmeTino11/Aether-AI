@@ -21,17 +21,27 @@ Strategic and technical architecture for Aether AI. Distinguishes **Approved** (
 
 Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). Stack finalized per DEC-0005: Next.js/React frontend, Supabase/PostgreSQL, Vercel.
 
+**Session 005 additions — persistence:**
+
+- `src/application/ports.ts` — persistence ports (business, employee, knowledge, conversation, lead). The application declares what it needs; nothing above this layer knows Postgres exists.
+- `src/application/handle-customer-message.ts` — the composition point for a real turn: load state → run engine → persist. Channel adapters (web widget, WhatsApp, email) call this and contain no employee logic. Also rejects a mis-routed employee whose business differs from the conversation's.
+- `src/infrastructure/postgres/sql-executor.ts` — driver seam with transaction support; repositories depend on this, not on `pg`.
+- `src/infrastructure/postgres/pg-executor.ts` — the only file importing the database driver.
+- `src/infrastructure/postgres/repositories.ts` — port implementations. `appendTurn` writes messages and conversation state in one transaction, since a reply persisted without its escalation state would leave a customer waiting on a handoff nobody was told about.
+- `src/knowledge/postgres-retriever.ts` — production retriever using coverage-based scoring (DEC-0010), replacing the in-memory reference implementation.
+
 **Verification status:**
 
 | Gate | What it proves |
 |---|---|
 | 7 unit tests (Node 20 + 22 matrix) | Grounding/escalation safety contract holds; provider is never called without grounding |
 | `supabase/tests/` on real Postgres 16 | RLS blocks cross-tenant reads and writes; integrity constraints reject invalid states |
+| 8 integration tests on real Postgres | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
 | 9 validator self-tests | The repo/decision validators actually fail when their rules are violated (DEC-0008) |
 | `scripts/validate_repo.py` | Required docs exist; every relative Markdown link resolves |
 | `scripts/validate_decisions.py` | No duplicate/out-of-order Decision IDs; required fields present; every cited DEC-XXXX exists |
 
-Run everything locally with `npm test`, `npm run validate`, and `bash scripts/test_validators.sh`.
+Run everything locally with `npm test`, `npm run validate`, and `bash scripts/test_validators.sh`. Integration tests need a database: `DATABASE_URL=... npm run test:integration` (they skip without one locally, but CI sets `REQUIRE_INTEGRATION=1` so a misconfigured URL fails loudly rather than skipping silently — DEC-0011).
 
 ## Major Components (Proposed)
 
@@ -63,7 +73,7 @@ Each integration (Google Workspace, Microsoft 365, WhatsApp, Twilio, HubSpot, Sa
 | `messages` | Per-message AI audit trail (prompt version, provider, model, tokens, grounding chunk ids) |
 | `leads` | Captured leads; must have a contact method |
 
-Tenant isolation via RLS (DEC-0007). Vector search is **not** implemented — full-text index is the current retrieval upgrade path.
+Tenant isolation via RLS (DEC-0007). Retrieval uses the GIN full-text index with coverage-based scoring (DEC-0010). Vector search (pgvector) is **not** implemented; if added, it must be calibrated against the assertions in `src/__tests__/postgres.integration.test.ts`.
 
 ## Authentication / Authorization
 
@@ -88,5 +98,7 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0005 | Stack: TypeScript, Next.js/React, Supabase/Postgres, Vercel; core stays framework-agnostic |
 | DEC-0006 | Escalation-by-default grounding policy |
 | DEC-0007 | Tenant isolation enforced at the database layer (RLS primary, app checks secondary) |
+| DEC-0010 | Retriever scoring is coverage-based, not raw ts_rank |
+| DEC-0011 | Integration tests fail rather than skip in CI |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

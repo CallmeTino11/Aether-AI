@@ -8,10 +8,15 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.test.js",
-    "validate": "python3 scripts/validate_repo.py && python3 scripts/validate_decisions.py"
+    "validate": "python3 scripts/validate_repo.py && python3 scripts/validate_decisions.py",
+    "test:integration": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.integration.test.js"
   },
   "devDependencies": {
-    "typescript": "^5.5.0",
-    "@types/node": "^20.14.0"
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@types/pg": "^8.21.0",
+    "pg": "^8.23.0"
   }
 }

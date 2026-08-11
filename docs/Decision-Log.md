@@ -4,6 +4,17 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 005: Persistence Layer
+
+- **Changes made:** Implemented persistence ports, Postgres repositories with transactional turn writes, the production full-text retriever, and the turn use case.
+- **Key finding:** raw `ts_rank` was unusable as a grounding score (0.187 clear vs 0.168 decent — no margin above the 0.15 threshold). Replaced with coverage-squared scoring, measured to reproduce the reference retriever's calibrated behaviour with wide margins.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, ci.yml, package.json, src/index.ts
+- **Documents created:** `src/application/ports.ts`, `src/application/handle-customer-message.ts`, `src/infrastructure/postgres/*`, `src/knowledge/postgres-retriever.ts`, `src/__tests__/postgres.integration.test.ts`, session 005 record
+- **Decisions created:** DEC-0010 (coverage-based retriever scoring), DEC-0011 (integration tests fail rather than skip)
+- **Decisions referenced:** DEC-0003, DEC-0006, DEC-0007, DEC-0008
+- **Implementation changes:** 8 integration tests passing against real Postgres 16; CI gained an integration job with a guard against silent skips
+- **Outstanding issues:** See `sessions/2026-08-11-session-005.md`
+
 ## 2026-08-11 — Session 004: CI Failure Investigation & Validator Hardening
 
 - **Changes made:** Investigated a red CI run, found and fixed two distinct defects — a Node-version-dependent test invocation, and a link checker that printed errors while exiting 0.
