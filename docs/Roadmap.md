@@ -12,13 +12,16 @@ Create the operating system for AI employees that powers millions of businesses 
 
 ## Current Focus
 
-*Status: Unknown.* Repository/documentation initialization (this session) is the only concretely "in progress" item.
+**AI Receptionist v1 (DEC-0004)** — text-channel-first receptionist on the shared Digital Employee foundation.
 
-## Near-Term (not yet committed)
+## Near-Term (committed)
 
-- Finalize frontend stack decision (Next.js/React vs. alternatives) — open per department docs
-- First real architecture decisions for Platform/AI/Data/Infrastructure
-- Decide which Digital Employee ships first
+- ~~Finalize frontend stack~~ — Done, DEC-0005 (Next.js/React, Supabase, Vercel)
+- ~~Decide which Digital Employee ships first~~ — Done, DEC-0004 (Receptionist)
+- Knowledge-base/RAG layer so the Receptionist answers from real business facts (grounding = the core safety requirement in its spec)
+- Receptionist conversation engine wiring domain + AI layer
+- Database schema for businesses, employees, conversations, leads (Supabase/Postgres)
+- Web chat widget (first channel integration)
 
 ## Later
 

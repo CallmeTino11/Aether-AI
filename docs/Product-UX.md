@@ -8,7 +8,7 @@ Feature planning, UX direction, product specifications, user journeys.
 
 ## Current Priorities
 
-*Status: Unknown.* Not yet defined by the founder.
+**AI Receptionist v1** (DEC-0004) — see `specs/ai-employees/receptionist.md` for the approved spec.
 
 ## Current Decisions
 
@@ -24,8 +24,8 @@ None yet.
 
 ## Open Questions
 
-- Which Digital Employee type ships first (Receptionist? Sales Rep? Support?) — not decided.
 - Core dashboard UX — not decided.
+- Receptionist v1: voice in scope or text-only first? (Engineering leaning text-only.)
 
 ## Dependencies
 
@@ -34,4 +34,4 @@ None yet.
 
 ## Last Updated
 
-2026-08-11
+2026-08-11 (session 002)

@@ -6,13 +6,12 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: No source code yet
-        run: |
-          echo "No application source code exists in this repository yet."
-          echo "This job is a placeholder that will be replaced with real build/test/lint steps"
-          echo "once Frontend/Platform/AI/Data/Infrastructure engineering work begins."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx tsc --noEmit

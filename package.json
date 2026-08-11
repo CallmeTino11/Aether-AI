@@ -1,0 +1,14 @@
+{
+  "name": "@aether-ai/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aether AI core: Digital Employee domain model and provider-agnostic AI layer",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

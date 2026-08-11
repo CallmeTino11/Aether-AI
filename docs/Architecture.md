@@ -4,11 +4,18 @@ Strategic and technical architecture for Aether AI. Distinguishes **Approved** (
 
 ## Current Architecture
 
-*Status: Proposed / Not yet implemented.* No code exists in this repository yet — this section will be populated as real architecture decisions are made and implemented.
+**Implemented (as of 2026-08-11, session 002):** the framework-agnostic core package `@aether-ai/core` at `src/`:
+
+- `src/domain/employee.ts` — Digital Employee entity. Every employee type is a *role configuration* of one model (roles, personas, explicit permission grants with per-role safe defaults, `hireEmployee` factory enforcing invariants, pure `hasPermission` check).
+- `src/domain/conversation.ts` — channel-agnostic conversation model (web chat / WhatsApp / email / SMS map to one shape); escalation is a first-class state; immutable state transitions.
+- `src/ai/provider.ts` — the provider abstraction: `AiProvider` interface, normalized `AiProviderError`, and `AiProviderRegistry` for runtime routing. **Business logic depends only on this.**
+- `src/ai/providers/anthropic.ts` — first concrete adapter (fetch-based, no SDK dependency in core).
+
+Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`); typecheck enforced in CI. Stack finalized per DEC-0005: Next.js/React frontend, Supabase/PostgreSQL, Vercel.
 
 ## Major Components (Proposed)
 
-- **Frontend** — dashboard for managing Digital Employees (Next.js/React, provisional per DEC-0001 context — not yet formally locked)
+- **Frontend** — dashboard for managing Digital Employees (Next.js/React — finalized per DEC-0005)
 - **Platform / Backend** — APIs, auth, business logic, integration modules
 - **AI Engineering layer** — agent framework, prompt management, memory, tool calling, RAG, provider-agnostic abstraction over OpenAI/Anthropic/Gemini/etc.
 - **Data layer** — PostgreSQL, schema/migrations, performance
