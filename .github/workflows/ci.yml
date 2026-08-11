@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No source code yet
+        run: |
+          echo "No application source code exists in this repository yet."
+          echo "This job is a placeholder that will be replaced with real build/test/lint steps"
+          echo "once Frontend/Platform/AI/Data/Infrastructure engineering work begins."
