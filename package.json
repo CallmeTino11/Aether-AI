@@ -7,7 +7,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "tsc -p tsconfig.json --outDir dist && node --test \"dist/__tests__/**/*.test.js\""
+    "test": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.test.js",
+    "validate": "python3 scripts/validate_repo.py && python3 scripts/validate_decisions.py"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

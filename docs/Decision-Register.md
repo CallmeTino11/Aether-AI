@@ -297,4 +297,79 @@ DEC-0005
 ### Notes
 Verification scripts are committed and reproducible; CI applies the migration on every push.
 
+---
+
+## DEC-0008 — Validators must be self-tested and live in scripts, not inline YAML
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+All repository/decision validation logic lives in executable scripts under `scripts/`, not inline in workflow YAML, and every validator has a negative self-test (`scripts/test_validators.sh`) asserting it exits non-zero when its rule is violated. The self-tests run before the validators in CI.
+
+### Reason
+The original inline-shell link checker set its failure flag inside a pipeline subshell, so the flag never reached the parent shell: it printed error messages and exited 0. CI reported green on a repository with a broken link, and did so for three commits. A validator that cannot fail is worse than none — it manufactures confidence. Inline YAML shell also cannot be run or negatively tested locally.
+
+### Impact
+- Engineering
+- Documentation
+- Infrastructure
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0007
+
+### Notes
+9 self-tests currently: 2 positive, 7 negative (broken link, missing required doc, duplicate Decision ID, missing field, invalid status, dangling supersession, reference to a non-existent decision). The last one enforces the register's own "do not fabricate Decision IDs" rule mechanically.
+
+---
+
+## DEC-0009 — CI runs a Node version matrix
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+CI runs typecheck and unit tests against Node 20 and Node 22. Test invocation relies on shell glob expansion rather than Node's built-in `--test` glob support, whose availability differs across major versions.
+
+### Reason
+Tests passed locally (Node 22) and failed in CI (Node 20) because `node --test "glob"` depends on Node's own glob engine, absent in older majors. Shell expansion removes the version dependency; the matrix ensures any future version-specific breakage surfaces in CI rather than being masked by whichever version a developer happens to run.
+
+### Impact
+- Engineering
+- Infrastructure
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0005, DEC-0008
+
+### Notes
+None.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

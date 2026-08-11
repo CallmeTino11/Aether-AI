@@ -21,7 +21,17 @@ Strategic and technical architecture for Aether AI. Distinguishes **Approved** (
 
 Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). Stack finalized per DEC-0005: Next.js/React frontend, Supabase/PostgreSQL, Vercel.
 
-**Verification status:** 7 unit tests passing (grounding/escalation safety contract); migration executed and RLS + integrity constraints proven against real Postgres 16 (`supabase/tests/`). CI enforces typecheck, tests, and migration application.
+**Verification status:**
+
+| Gate | What it proves |
+|---|---|
+| 7 unit tests (Node 20 + 22 matrix) | Grounding/escalation safety contract holds; provider is never called without grounding |
+| `supabase/tests/` on real Postgres 16 | RLS blocks cross-tenant reads and writes; integrity constraints reject invalid states |
+| 9 validator self-tests | The repo/decision validators actually fail when their rules are violated (DEC-0008) |
+| `scripts/validate_repo.py` | Required docs exist; every relative Markdown link resolves |
+| `scripts/validate_decisions.py` | No duplicate/out-of-order Decision IDs; required fields present; every cited DEC-XXXX exists |
+
+Run everything locally with `npm test`, `npm run validate`, and `bash scripts/test_validators.sh`.
 
 ## Major Components (Proposed)
 

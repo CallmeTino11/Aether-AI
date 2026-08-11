@@ -10,41 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Check required top-level files/folders exist
-        run: |
-          set -e
-          required=(
-            "README.md"
-            "docs/Aether-AI-Bible.md"
-            "docs/Architecture.md"
-            "docs/Decision-Register.md"
-            "docs/Decision-Log.md"
-            "docs/Roadmap.md"
-          )
-          missing=0
-          for f in "${required[@]}"; do
-            if [ ! -f "$f" ]; then
-              echo "::error::Missing required file: $f"
-              missing=1
-            fi
-          done
-          exit $missing
+      # Self-tests run FIRST: they prove the validators still fail when they
+      # should. A previous inline-shell version printed errors but exited 0,
+      # leaving CI green on a broken repo. Never trust an untested validator.
+      - name: Validator self-tests
+        run: bash scripts/test_validators.sh
 
-      - name: Check for basic broken relative markdown links
-        run: |
-          set -e
-          fail=0
-          while IFS= read -r -d '' file; do
-            dir=$(dirname "$file")
-            grep -oE '\]\(([^http][^)]*\.md[^)]*)\)' "$file" | sed -E 's/\]\((.*)\)/\1/' | while read -r link; do
-              clean_link="${link%%#*}"
-              [ -z "$clean_link" ] && continue
-              target="$dir/$clean_link"
-              if [ ! -f "$target" ]; then
-                echo "::error file=$file::Broken relative link: $link"
-                fail=1
-              fi
-            done
-          done < <(find docs README.md -name '*.md' -print0 2>/dev/null)
-          exit $fail
+      - name: Validate repository structure and links
+        run: python3 scripts/validate_repo.py

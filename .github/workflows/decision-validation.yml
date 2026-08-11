@@ -2,66 +2,16 @@ name: Decision Validation
 
 on:
   pull_request:
-    paths:
-      - 'docs/Decision-Register.md'
   push:
     branches: [main]
-    paths:
-      - 'docs/Decision-Register.md'
 
 jobs:
   validate-decisions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Validate Decision Register
-        run: |
-          python3 - << 'PYEOF'
-          import re, sys
-
-          with open("docs/Decision-Register.md") as f:
-              text = f.read()
-
-          ids = re.findall(r'##\s+(DEC-\d{4})\b', text)
-          errors = []
-
-          # No duplicate IDs
-          seen = set()
-          for i in ids:
-              if i in seen:
-                  errors.append(f"Duplicate Decision ID: {i}")
-              seen.add(i)
-
-          # IDs must be ascending, no gaps larger than expected (warn only on gaps)
-          nums = sorted(int(i.split('-')[1]) for i in seen)
-          for a, b in zip(nums, nums[1:]):
-              if b <= a:
-                  errors.append(f"Decision IDs out of order or duplicated near DEC-{a:04d}")
-
-          # Each decision block must have required fields
-          blocks = re.split(r'(?=##\s+DEC-\d{4})', text)
-          required_fields = ["**Department:**", "**Status:**", "**Date:**", "**Approved By:**"]
-          for block in blocks:
-              m = re.match(r'##\s+(DEC-\d{4})', block)
-              if not m:
-                  continue
-              dec_id = m.group(1)
-              for field in required_fields:
-                  if field not in block:
-                      errors.append(f"{dec_id} missing required field: {field}")
-              status_match = re.search(r'\*\*Status:\*\*\s*(\w+)', block)
-              if status_match and status_match.group(1) not in ("Approved", "Rejected", "Superseded"):
-                  errors.append(f"{dec_id} has invalid Status: {status_match.group(1)}")
-              supersedes_match = re.search(r'###\s+Supersedes\s*\n\s*(\S+)', block)
-              if supersedes_match:
-                  sup = supersedes_match.group(1)
-                  if sup != "None" and sup not in seen:
-                      errors.append(f"{dec_id} Supersedes references unknown decision: {sup}")
-
-          if errors:
-              for e in errors:
-                  print(f"::error::{e}")
-              sys.exit(1)
-          print(f"OK — {len(seen)} decisions validated, no duplicates, no broken references.")
-          PYEOF
+        run: python3 scripts/validate_decisions.py

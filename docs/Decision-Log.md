@@ -4,6 +4,16 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 004: CI Failure Investigation & Validator Hardening
+
+- **Changes made:** Investigated a red CI run, found and fixed two distinct defects — a Node-version-dependent test invocation, and a link checker that printed errors while exiting 0.
+- **Root causes:** (1) `node --test "glob"` relies on Node's glob engine (absent on Node 20, present on 22) — local passed, CI failed. (2) Failure flag assigned inside a pipeline subshell never propagated to the parent shell, so the job exited green.
+- **Documents modified:** Decision-Register, Decision-Log, Architecture, README (repaired a broken link the old checker missed)
+- **Documents created:** `scripts/validate_repo.py`, `scripts/validate_decisions.py`, `scripts/test_validators.sh`, session 004 record
+- **Decisions created:** DEC-0008 (validators self-tested, in scripts not YAML), DEC-0009 (Node version matrix)
+- **Implementation changes:** All four workflows rewritten to call tested scripts; CI now runs a Node 20/22 matrix; 9 validator self-tests added
+- **Outstanding issues:** See `sessions/2026-08-11-session-004.md`
+
 ## 2026-08-11 — Session 003: Receptionist Engine & Schema
 
 - **Changes made:** Implemented the knowledge/grounding layer, versioned prompt layer, Receptionist conversation engine, and the full database schema with tenant isolation.

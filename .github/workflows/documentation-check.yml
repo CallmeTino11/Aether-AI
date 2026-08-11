@@ -10,37 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Check Decision IDs referenced in docs actually exist
+      # Decision-reference integrity is enforced by validate_decisions.py,
+      # which checks that every DEC-XXXX cited anywhere resolves to a real
+      # entry in the register (guards against fabricated Decision IDs).
+      - name: Verify decision references across docs and code
+        run: python3 scripts/validate_decisions.py
+
+      - name: Report documentation freshness
         run: |
-          python3 - << 'PYEOF'
-          import re, glob, sys
-
-          with open("docs/Decision-Register.md") as f:
-              register_text = f.read()
-          valid_ids = set(re.findall(r'##\s+(DEC-\d{4})\b', register_text))
-
-          errors = []
-          for path in glob.glob("docs/**/*.md", recursive=True) + glob.glob("specs/**/*.md", recursive=True):
-              if path.endswith("Decision-Register.md"):
-                  continue
-              with open(path) as f:
-                  content = f.read()
-              referenced = set(re.findall(r'\b(DEC-\d{4})\b', content))
-              for ref in referenced:
-                  if ref not in valid_ids:
-                      errors.append(f"{path} references unknown decision {ref}")
-
-          if errors:
-              for e in errors:
-                  print(f"::error::{e}")
-              sys.exit(1)
-          print("OK — all referenced Decision IDs exist in the register.")
-          PYEOF
-
-      - name: Warn on stale docs (no updates in 90+ days, informational only)
-        run: |
+          echo "Last update per document:"
           for f in docs/*.md; do
-            last_commit_date=$(git log -1 --format=%cd --date=short -- "$f" 2>/dev/null || echo "unknown")
-            echo "$f — last updated: $last_commit_date"
+            printf '  %-42s %s\n' "$f" "$(git log -1 --format=%cd --date=short -- "$f")"
           done

@@ -8,11 +8,17 @@ on:
 jobs:
   typecheck-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      # Tested on the LTS the project targets and the version used during
+      # development. A version-specific failure (Node's --test glob support
+      # differs across majors) must surface here, not in production.
+      matrix:
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
       - run: npm ci
       - name: Typecheck
         run: npx tsc --noEmit
@@ -36,6 +42,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
+          set -euo pipefail
           psql -h localhost -U postgres -d postgres -c 'create database aether;'
           psql -h localhost -U postgres -d aether -c 'create extension if not exists pgcrypto;'
           psql -h localhost -U postgres -d aether -f supabase/tests/00_local_auth_stub.sql
