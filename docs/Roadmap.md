@@ -18,10 +18,13 @@ Create the operating system for AI employees that powers millions of businesses 
 
 - ~~Finalize frontend stack~~ — Done, DEC-0005 (Next.js/React, Supabase, Vercel)
 - ~~Decide which Digital Employee ships first~~ — Done, DEC-0004 (Receptionist)
-- Knowledge-base/RAG layer so the Receptionist answers from real business facts (grounding = the core safety requirement in its spec)
-- Receptionist conversation engine wiring domain + AI layer
-- Database schema for businesses, employees, conversations, leads (Supabase/Postgres)
-- Web chat widget (first channel integration)
+- ~~Knowledge-base layer + grounding policy~~ — Done, DEC-0006
+- ~~Receptionist conversation engine~~ — Done (7 tests passing)
+- ~~Database schema + tenant isolation~~ — Done, DEC-0007 (verified on real Postgres)
+- Supabase-backed repositories (persist conversations/messages/leads; replace in-memory retriever with full-text)
+- Web chat widget (first channel integration) + server-side turn endpoint
+- Next.js dashboard shell: hire an employee, upload knowledge, view conversations
+- Second provider adapter (OpenAI) to prove the abstraction against a real second vendor
 
 ## Later
 

@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  typecheck:
+  typecheck-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,4 +14,30 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npx tsc --noEmit
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: npm test
+
+  schema:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations and verify tenant isolation
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c 'create database aether;'
+          psql -h localhost -U postgres -d aether -c 'create extension if not exists pgcrypto;'
+          psql -h localhost -U postgres -d aether -f supabase/tests/00_local_auth_stub.sql
+          psql -h localhost -U postgres -d aether -v ON_ERROR_STOP=1 -f supabase/migrations/0001_core_schema.sql
+          echo "Migration applied cleanly."

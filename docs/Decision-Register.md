@@ -222,4 +222,79 @@ DEC-0001, DEC-0003
 ### Notes
 None.
 
+---
+
+## DEC-0006 — Escalation-by-default grounding policy
+
+**Department:** AI
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+A Digital Employee escalates to a human rather than answering whenever: (a) knowledge retrieval returns nothing above the grounding threshold, (b) the model signals it cannot answer confidently, or (c) the AI provider fails. Grounding threshold is a named domain constant (`MIN_GROUNDING_SCORE`), calibrated empirically and documented in `src/domain/knowledge.ts`.
+
+### Reason
+A confidently wrong answer about pricing, availability, or policy damages the customer's business and Aether AI's credibility. An unnecessary handoff costs one human reply. The asymmetry justifies biasing hard toward escalation. Verified by tests: with no matching knowledge the AI provider is never even called, so it cannot improvise.
+
+### Impact
+- Product
+- Engineering
+- Marketing (this is a differentiator worth stating publicly)
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0004
+
+### Notes
+Any future retriever (pgvector/embeddings) must be re-calibrated against the documented threshold behaviour, not dropped in blind.
+
+---
+
+## DEC-0007 — Tenant isolation enforced at the database layer
+
+**Department:** Data
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Postgres Row Level Security is the primary tenant-isolation mechanism; application-layer permission checks are a secondary defence. Every business-scoped table has RLS enabled with membership-based policies. The anonymous-visitor write path runs server-side under the service role with explicit business scoping, never by loosening RLS policies to allow public writes.
+
+### Reason
+A bug in application code must not be able to leak one business's customer conversations to another. Verified against real Postgres 16: cross-tenant reads return zero rows and cross-tenant writes are rejected by the database (`supabase/tests/01_tenant_isolation.sql`).
+
+### Impact
+- Engineering
+- Documentation
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0005
+
+### Notes
+Verification scripts are committed and reproducible; CI applies the migration on every push.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

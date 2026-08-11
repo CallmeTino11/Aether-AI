@@ -11,7 +11,17 @@ Strategic and technical architecture for Aether AI. Distinguishes **Approved** (
 - `src/ai/provider.ts` — the provider abstraction: `AiProvider` interface, normalized `AiProviderError`, and `AiProviderRegistry` for runtime routing. **Business logic depends only on this.**
 - `src/ai/providers/anthropic.ts` — first concrete adapter (fetch-based, no SDK dependency in core).
 
-Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`); typecheck enforced in CI. Stack finalized per DEC-0005: Next.js/React frontend, Supabase/PostgreSQL, Vercel.
+**Session 003 additions:**
+
+- `src/domain/knowledge.ts` — knowledge model and the `KnowledgeRetriever` *port*. Declares `MIN_GROUNDING_SCORE`, the empirically-calibrated threshold below which the employee escalates instead of answering (DEC-0006).
+- `src/knowledge/in-memory-retriever.ts` — working reference retriever (TF-weighted keyword overlap with title bonus, hard tenant filtering). Any future pgvector retriever must match its calibrated behaviour.
+- `src/ai/receptionist-prompt.ts` — versioned prompt construction (`RECEPTIONIST_PROMPT_VERSION`) producing provider-neutral messages. Grounding rules live here, in one reviewable place.
+- `src/application/receptionist-engine.ts` — orchestrates one conversation turn: retrieve → prompt → complete → apply escalation policy → return new state + audit record. Holds no vendor, persistence, or channel knowledge, so it is reusable for future employee types.
+- `supabase/migrations/0001_core_schema.sql` — businesses, membership, employees, knowledge, conversations, messages (with AI audit columns), leads. RLS on every tenant-scoped table (DEC-0007).
+
+Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). Stack finalized per DEC-0005: Next.js/React frontend, Supabase/PostgreSQL, Vercel.
+
+**Verification status:** 7 unit tests passing (grounding/escalation safety contract); migration executed and RLS + integrity constraints proven against real Postgres 16 (`supabase/tests/`). CI enforces typecheck, tests, and migration application.
 
 ## Major Components (Proposed)
 
@@ -31,15 +41,27 @@ Each integration (Google Workspace, Microsoft 365, WhatsApp, Twilio, HubSpot, Sa
 
 ## Data Architecture
 
-*Status: Unknown.* No schema exists yet. Will be defined in Data Engineering sessions and recorded here once approved.
+**Implemented** — `supabase/migrations/0001_core_schema.sql`:
+
+| Table | Purpose |
+|---|---|
+| `businesses` | Tenant root |
+| `business_members` | Links Supabase auth users to businesses (owner/admin/agent) |
+| `digital_employees` | Role, persona, permission grants (jsonb), status |
+| `knowledge_chunks` | Grounding source; GIN full-text index |
+| `conversations` | Channel-agnostic; escalation state + reason (constraint-enforced) |
+| `messages` | Per-message AI audit trail (prompt version, provider, model, tokens, grounding chunk ids) |
+| `leads` | Captured leads; must have a contact method |
+
+Tenant isolation via RLS (DEC-0007). Vector search is **not** implemented — full-text index is the current retrieval upgrade path.
 
 ## Authentication / Authorization
 
-*Status: Unknown.* Not yet decided.
+Supabase Auth (`auth.users`) with membership-based authorization via `business_members` and the `is_business_member()` RLS helper. Employee-level permissions are explicit grants stored as data, checked by `hasPermission()` — never inferred from role.
 
 ## Knowledge Architecture
 
-How Digital Employees "learn company knowledge" is conceptually part of the AI employee model (`specs/ai-employees/`) but the implementation (RAG store, embeddings, etc.) is not yet decided.
+Businesses supply knowledge as typed chunks (faq/service/policy/hours/pricing/document). Retrieval sits behind the `KnowledgeRetriever` port so the strategy can evolve — in-memory keyword (now) → Postgres full-text → pgvector embeddings — without touching employee logic. The grounding threshold and escalation-by-default policy (DEC-0006) are the safety boundary.
 
 ## Observability, Security, Scalability
 
@@ -51,4 +73,10 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 
 ## Architecture Decisions
 
-None recorded yet beyond the department-structure decisions (DEC-0001, DEC-0002) in `Decision-Register.md`, which are organizational rather than technical.
+| ID | Decision |
+|---|---|
+| DEC-0005 | Stack: TypeScript, Next.js/React, Supabase/Postgres, Vercel; core stays framework-agnostic |
+| DEC-0006 | Escalation-by-default grounding policy |
+| DEC-0007 | Tenant isolation enforced at the database layer (RLS primary, app checks secondary) |
+
+Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

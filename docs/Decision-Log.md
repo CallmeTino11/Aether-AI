@@ -4,6 +4,16 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 003: Receptionist Engine & Schema
+
+- **Changes made:** Implemented the knowledge/grounding layer, versioned prompt layer, Receptionist conversation engine, and the full database schema with tenant isolation.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, ci.yml
+- **Documents created:** `src/domain/knowledge.ts`, `src/knowledge/in-memory-retriever.ts`, `src/ai/receptionist-prompt.ts`, `src/application/receptionist-engine.ts`, `src/__tests__/receptionist-engine.test.ts`, `supabase/migrations/0001_core_schema.sql`, `supabase/tests/*`, session 003 record
+- **Decisions created:** DEC-0006 (escalation-by-default grounding), DEC-0007 (DB-layer tenant isolation)
+- **Decisions referenced:** DEC-0003, DEC-0004, DEC-0005
+- **Implementation changes:** 7 unit tests passing; migration + RLS + constraints verified against real Postgres 16; CI now runs typecheck, tests, and migration
+- **Outstanding issues:** See `sessions/2026-08-11-session-003.md`
+
 ## 2026-08-11 — Session 002: First Build Session
 
 - **Changes made:** First production code (`@aether-ai/core`); stack finalized; first Digital Employee chosen and specced.
