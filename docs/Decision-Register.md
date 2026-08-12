@@ -559,4 +559,120 @@ DEC-0008, DEC-0011
 ### Notes
 Third in a family of false-confidence defects, after the subshell exit-code bug (DEC-0008) and silent integration skips (DEC-0011). Verified by three consecutive full runs, 29/29 each.
 
+---
+
+## DEC-0015 — Escalation notifications use a transactional outbox
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Escalation alerts are written to `notification_outbox` **in the same transaction as the escalation itself**, then delivered by a separate worker with exponential backoff (30s doubling, capped at 30 min, abandoned after 6 attempts). The outbox row is a parameter to `appendTurn`, not a separate call, so the atomicity cannot be forgotten by a caller. Delivery is at-least-once; senders must be safe to invoke twice.
+
+### Reason
+The widget already told customers "a team member has been notified" while nothing in the system notified anyone (recorded as a risk in session 006). Sending inline during the turn would have been worse than it appears: it puts third-party latency in the customer's response path, loses the alert entirely if the provider is down, and cannot recover from a crash between marking the conversation escalated and dispatching the alert. The outbox closes that window by construction — either both writes land or neither does.
+
+### Impact
+- Product
+- Engineering
+- Customer Success
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0006, DEC-0012
+
+### Notes
+A partial unique index deduplicates pending alerts per conversation, so a conversation that escalates repeatedly before delivery produces one ping rather than a pile. Alerts that exhaust their attempts are marked `failed` and retained for the dashboard rather than deleted — evidence that a customer was never reached is worth keeping.
+
+---
+
+## DEC-0016 — Outbox claiming requires a lease, not just SKIP LOCKED
+
+**Department:** Data
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+`claim_due_notifications` both takes `for update skip locked` **and** pushes `next_attempt_at` forward by a lease interval when claiming. The lease is a required argument, not a defaulted one.
+
+### Reason
+`SKIP LOCKED` alone was insufficient and this was verified empirically, not assumed: six concurrent workers claiming 30 due rows produced **50 claims across 30 unique ids, with 20 rows claimed more than once**. SKIP LOCKED protects concurrent transactions, but once the claiming transaction commits the row is still `pending` and still due, so the next worker takes it again. In production that is duplicate emails to a customer's team. The lease also gives crash recovery: a worker that dies mid-delivery releases the row when the lease expires.
+
+The argument is not defaulted because `create or replace` matches on signature — adding a defaulted third parameter created a second overload alongside the old two-argument version rather than replacing it, and every call then failed with "function is not unique".
+
+### Impact
+- Engineering
+- Data
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0015
+
+### Notes
+Guarded by a regression test that was confirmed to fail against the buggy function (reproducing 50 claims / 30 unique) and pass against the fixed one. A test that has never been seen to fail proves nothing.
+
+---
+
+## DEC-0017 — The product must not claim an action it has not taken
+
+**Department:** Product
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Customer-facing text may only assert something the system can confirm. Concretely: the widget says "a team member has been notified" only when an alert was actually queued (`teamNotified`), and otherwise says it has flagged the conversation. The development console sender throws if constructed with `NODE_ENV=production`, because a sender that silently succeeds would mark alerts delivered that no human ever saw.
+
+### Reason
+A false reassurance to a customer waiting on a business is worse than an honest limitation: the customer stops chasing, the business never learns, and the failure surfaces as lost trust rather than as a bug. This is the same class of defect as DEC-0008, DEC-0011 and DEC-0014 — a system reporting success it had not verified — except the audience is the end customer rather than an engineer.
+
+### Impact
+- Product
+- Engineering
+- Marketing
+- Customer Success
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0008, DEC-0011, DEC-0014, DEC-0015
+
+### Notes
+No real email/SMS provider is chosen yet — that is a business decision (cost, deliverability, region). The `NotificationSender` port means adopting one is a single class, and the console sender keeps the whole path exercisable meanwhile without pretending to deliver.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

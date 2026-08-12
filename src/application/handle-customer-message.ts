@@ -17,12 +17,25 @@ import type {
   PersistedMessage,
 } from "./ports.js";
 import type { ReceptionistEngine, TurnResult } from "./receptionist-engine.js";
+import {
+  renderEscalationNotification,
+  type EnqueueNotification,
+  type NotificationOutboxRepository,
+} from "./notifications.js";
 
 export interface HandleCustomerMessageDeps {
   readonly engine: ReceptionistEngine;
   readonly businesses: BusinessRepository;
   readonly employees: EmployeeRepository;
   readonly conversations: ConversationRepository;
+  /**
+   * Optional so unit tests and non-notifying contexts can omit it. When absent,
+   * escalations still persist — they simply do not alert anyone, which is why
+   * production wiring must supply it.
+   */
+  readonly notifications?: NotificationOutboxRepository;
+  /** Builds the team-facing deep link; omitted when no dashboard URL is configured. */
+  readonly conversationUrl?: (conversationId: ConversationId) => string;
 }
 
 export interface HandleCustomerMessageInput {
@@ -69,14 +82,62 @@ export class HandleCustomerMessage {
       text: input.text,
     });
 
+    // Built before the write so it can go into the same transaction. Recipients
+    // are looked up here rather than at delivery time so the alert records who
+    // was configured when the escalation happened.
+    const notification = result.escalated
+      ? await this.buildEscalationNotification(result, business.name, employee.persona.name, input.text)
+      : undefined;
+
     await this.deps.conversations.appendTurn(
       result.conversation,
       newMessagesOf(conversation, result),
+      notification,
     );
 
-    return result;
+    // A queued notification is a delivery guarantee: it shares the escalation's
+    // transaction, and the worker retries with backoff until it lands. So this
+    // is the one signal that justifies telling a customer their team knows.
+    return notification !== undefined
+      ? { ...result, notificationQueued: true }
+      : result;
+  }
+
+  private async buildEscalationNotification(
+    result: TurnResult,
+    businessName: string,
+    employeeName: string,
+    customerMessage: string,
+  ): Promise<EnqueueNotification | undefined> {
+    const outbox = this.deps.notifications;
+    if (!outbox) return undefined;
+
+    const conversation = result.conversation;
+    const recipients = await outbox.findRecipients(conversation.businessId);
+
+    // Enqueue even with zero recipients. The worker will surface it as a
+    // failure, which is a visible prompt to configure someone — silently
+    // discarding the alert would hide that the business is unreachable.
+    const payload = renderEscalationNotification({
+      businessName,
+      employeeName,
+      customerMessage,
+      reason: conversation.escalation?.reason ?? "Escalated to a human.",
+      recipients,
+      ...(this.deps.conversationUrl
+        ? { conversationUrl: this.deps.conversationUrl(conversation.id) }
+        : {}),
+    });
+
+    return {
+      businessId: conversation.businessId,
+      conversationId: conversation.id,
+      kind: "escalation",
+      payload,
+    };
   }
 }
+
 
 /**
  * The engine returns the whole conversation; only the messages it added need

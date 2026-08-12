@@ -4,6 +4,18 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 007: Escalation Notifications
+
+- **Changes made:** Built the notification outbox, worker, and recipient model; closed the gap where the widget promised customers a team member had been notified when nobody was.
+- **Bug found and fixed:** `SKIP LOCKED` alone did not prevent double-claiming — six concurrent workers on 30 rows produced 50 claims / 30 unique, 20 rows claimed twice. Root cause: a committed claim leaves the row still `pending` and still due. Fixed with a lease (DEC-0016). A second issue surfaced while fixing it: a defaulted SQL argument created an overload instead of replacing the function, breaking every call with "function is not unique".
+- **Honesty fix:** the widget now only claims notification when an alert was genuinely queued, and the development sender refuses to run in production (DEC-0017).
+- **Documents modified:** Decision-Register, Architecture, Roadmap, src/index.ts, ports, repositories, widget, HTTP handler
+- **Documents created:** `supabase/migrations/0003_notification_outbox.sql`, `src/application/{notifications,notification-worker}.ts`, `src/infrastructure/postgres/pg-notification-outbox.ts`, `src/infrastructure/notifications/console-sender.ts`, `src/__tests__/notifications.integration.test.ts`, session 007 record
+- **Decisions created:** DEC-0015, DEC-0016, DEC-0017
+- **Decisions referenced:** DEC-0003, DEC-0006, DEC-0008, DEC-0011, DEC-0012, DEC-0014
+- **Implementation changes:** 42 integration tests passing, verified twice; regression test confirmed to fail against the buggy claim function
+- **Outstanding issues:** See `sessions/2026-08-11-session-007.md`
+
 ## 2026-08-11 — Session 006: Web Chat Widget (first channel, end to end)
 
 - **Changes made:** Built the anonymous widget path end to end: session-token authorization, rate limiting, HTTP handler, and the embeddable browser widget.

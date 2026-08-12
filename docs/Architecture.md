@@ -39,6 +39,15 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/http/widget-handler.ts` — web-standard `Request`/`Response` handler (works in Next.js, Vercel edge, or plain Node with no adapter), explicit CORS allowlist, error-code-to-status mapping, no internal detail in responses.
 - `public/widget.js` — dependency-free embeddable widget in Shadow DOM. All text inserted via `textContent`, never `innerHTML`: model output reading business-supplied knowledge is untrusted input for rendering.
 
+**Session 007 additions — escalation notifications:**
+
+- `supabase/migrations/0003_notification_outbox.sql` — outbox table, recipients table, and `claim_due_notifications()` with lease-based claiming (DEC-0016).
+- `src/application/notifications.ts` — notification domain, `NotificationSender` port, backoff policy, escalation rendering.
+- `src/application/notification-worker.ts` — claims, delivers, retries with backoff, abandons visibly past the attempt ceiling.
+- `src/infrastructure/postgres/pg-notification-outbox.ts` — outbox repository.
+- `src/infrastructure/notifications/console-sender.ts` — development sender that **refuses to run in production** (DEC-0017).
+- `appendTurn` now takes the notification as a parameter so the escalation and its alert share one transaction by construction (DEC-0015).
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -48,6 +57,7 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 | 8 persistence integration tests | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
 | 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
 | 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
+| 13 notification tests | Alert shares the escalation's transaction and rolls back with it; pending alerts deduplicated per conversation; backoff, abandonment, and missing-recipient handling; concurrent workers never double-claim |
 | 9 validator self-tests | The repo/decision validators actually fail when their rules are violated (DEC-0008) |
 | `scripts/validate_repo.py` | Required docs exist; every relative Markdown link resolves |
 | `scripts/validate_decisions.py` | No duplicate/out-of-order Decision IDs; required fields present; every cited DEC-XXXX exists |
@@ -114,5 +124,8 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0012 | Anonymous widget sessions authorized by hashed session tokens |
 | DEC-0013 | Widget turns rate limited per conversation and per business |
 | DEC-0014 | Test suites verified repeatable, not merely passing |
+| DEC-0015 | Escalation notifications use a transactional outbox |
+| DEC-0016 | Outbox claiming requires a lease, not just SKIP LOCKED |
+| DEC-0017 | The product must not claim an action it has not taken |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

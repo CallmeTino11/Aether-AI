@@ -12,6 +12,7 @@ import type { BusinessId, DigitalEmployee, EmployeeId } from "../domain/employee
 import type { ConversationId } from "../domain/employee.js";
 import type { KnowledgeChunk } from "../domain/knowledge.js";
 import type { TurnAudit } from "./receptionist-engine.js";
+import type { EnqueueNotification } from "./notifications.js";
 
 export interface BusinessRecord {
   readonly id: BusinessId;
@@ -46,8 +47,21 @@ export interface PersistedMessage {
 export interface ConversationRepository {
   create(conversation: Conversation): Promise<void>;
   findById(id: ConversationId): Promise<Conversation | null>;
-  /** Persists new messages and the conversation's current state in one transaction. */
-  appendTurn(conversation: Conversation, newMessages: readonly PersistedMessage[]): Promise<void>;
+  /**
+   * Persists new messages, the conversation's current state, and — when the turn
+   * escalated — the notification, all in ONE transaction.
+   *
+   * The notification is a parameter here rather than a separate call the caller
+   * makes afterwards, because that is the only way the atomicity guarantee
+   * cannot be forgotten. A process that died between "mark escalated" and
+   * "enqueue alert" would leave a customer who was told a team member had been
+   * notified, when nobody had been.
+   */
+  appendTurn(
+    conversation: Conversation,
+    newMessages: readonly PersistedMessage[],
+    notification?: EnqueueNotification,
+  ): Promise<void>;
   listEscalated(businessId: BusinessId): Promise<readonly Conversation[]>;
 }
 

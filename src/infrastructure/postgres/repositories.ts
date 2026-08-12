@@ -44,6 +44,8 @@ import type {
 } from "../../application/ports.js";
 import type { WidgetSessionRepository } from "../../application/widget-conversation-service.js";
 import type { SqlExecutor } from "./sql-executor.js";
+import type { EnqueueNotification } from "../../application/notifications.js";
+import { PgNotificationOutboxRepository } from "./pg-notification-outbox.js";
 
 // --------------------------------------------------------------------------
 // Businesses
@@ -260,6 +262,7 @@ export class PgConversationRepository implements ConversationRepository {
   async appendTurn(
     conversation: Conversation,
     newMessages: readonly PersistedMessage[],
+    notification?: EnqueueNotification,
   ): Promise<void> {
     await this.sql.transaction(async (tx) => {
       for (const entry of newMessages) {
@@ -297,6 +300,14 @@ export class PgConversationRepository implements ConversationRepository {
           conversation.escalation?.escalatedAt ?? null,
         ],
       );
+
+      // Same transaction, same executor: the alert either lands with the
+      // escalation or not at all. Using `tx` here (not `this.sql`) is the whole
+      // point — `this.sql` would open a separate connection outside this
+      // transaction and reintroduce the gap.
+      if (notification) {
+        await new PgNotificationOutboxRepository(tx).enqueue(notification);
+      }
     });
   }
 

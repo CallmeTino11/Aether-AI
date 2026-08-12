@@ -90,6 +90,16 @@ export interface SendMessageInput {
 export interface SendMessageOutput {
   readonly reply: string;
   readonly escalated: boolean;
+  /**
+   * True only when an escalation alert was actually queued for delivery.
+   *
+   * The widget uses this to decide whether it may tell the customer a team
+   * member has been notified. Previously it made that claim on `escalated`
+   * alone, which was a promise to a real person that nothing in the system
+   * kept. If notifications are not configured, the customer now gets an honest
+   * message instead of a false reassurance.
+   */
+  readonly teamNotified: boolean;
 }
 
 export class WidgetConversationService {
@@ -206,7 +216,11 @@ export class WidgetConversationService {
 
     await this.deps.sessions.touchActivity(input.conversationId);
 
-    return { reply: result.reply, escalated: result.escalated };
+    return {
+      reply: result.reply,
+      escalated: result.escalated,
+      teamNotified: result.notificationQueued === true,
+    };
   }
 }
 

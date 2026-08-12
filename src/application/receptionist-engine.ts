@@ -62,6 +62,12 @@ export interface TurnResult {
   readonly reply: string;
   readonly escalated: boolean;
   readonly audit: TurnAudit;
+  /**
+   * Set by the persistence layer, not the engine: whether an escalation alert
+   * was actually enqueued. Undefined means notifications were not wired up.
+   * Callers must not tell a customer their team was notified without it.
+   */
+  readonly notificationQueued?: boolean;
 }
 
 export interface ReceptionistEngineDeps {

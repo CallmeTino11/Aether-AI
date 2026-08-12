@@ -246,7 +246,16 @@
         setSending(false);
         addMessage(data.reply, "them");
         if (data.escalated) {
-          addMessage("A team member has been notified and will follow up.", "note");
+          // Only claim notification when the server confirms an alert was
+          // actually queued. Saying "a team member has been notified" when
+          // nothing was queued is a promise to a real person that the system
+          // does not keep.
+          addMessage(
+            data.teamNotified
+              ? "A team member has been notified and will follow up."
+              : "I've flagged this for the team to pick up.",
+            "note",
+          );
         }
       })
       .catch(function (error) {

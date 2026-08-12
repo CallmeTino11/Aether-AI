@@ -70,3 +70,28 @@ export {
 export { PgRateLimiter } from "./infrastructure/postgres/pg-rate-limiter.js";
 export { PgWidgetSessionRepository } from "./infrastructure/postgres/repositories.js";
 export { createWidgetHandler, type WidgetHttpOptions } from "./http/widget-handler.js";
+
+// Escalation notifications (session 007)
+export {
+  backoffDelayMs,
+  MAX_DELIVERY_ATTEMPTS,
+  renderEscalationNotification,
+  type EnqueueNotification,
+  type NotificationChannel,
+  type NotificationKind,
+  type NotificationOutboxRepository,
+  type NotificationPayload,
+  type NotificationRecipient,
+  type NotificationSender,
+  type OutboxEntry,
+} from "./application/notifications.js";
+export {
+  NotificationWorker,
+  type NotificationWorkerDeps,
+  type WorkerRunResult,
+} from "./application/notification-worker.js";
+export { PgNotificationOutboxRepository } from "./infrastructure/postgres/pg-notification-outbox.js";
+export {
+  ConsoleNotificationSender,
+  type ConsoleNotificationSenderOptions,
+} from "./infrastructure/notifications/console-sender.js";

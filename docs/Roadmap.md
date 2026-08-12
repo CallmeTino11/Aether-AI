@@ -28,7 +28,8 @@ Create the operating system for AI employees that powers millions of businesses 
 
 ## Later
 
-*Nothing committed.*
+- Real email/SMS provider for notifications (business decision: cost, deliverability, region). The `NotificationSender` port means this is one class.
+- Scheduled worker invocation (Vercel cron) for the outbox and rate-limit cleanup.
 
 ## Long-Term
 

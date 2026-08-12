@@ -14,6 +14,7 @@ These scripts verify the migrations' security and integrity properties against a
 |---|---|
 | `0001_core_schema.sql` | businesses, membership, employees, knowledge, conversations, messages (with AI audit columns), leads; RLS on all tenant-scoped tables |
 | `0002_widget_session_security.sql` | Widget session token hashes, `last_activity_at`, atomic rate-limit counters |
+| `0003_notification_outbox.sql` | Escalation notification outbox, recipients, lease-based `claim_due_notifications()` |
 
 ## Running locally
 

@@ -117,7 +117,15 @@ export function createWidgetHandler(
           sessionToken,
           text: body.text,
         });
-        return json({ reply: result.reply, escalated: result.escalated }, 200, cors);
+        return json(
+          {
+            reply: result.reply,
+            escalated: result.escalated,
+            teamNotified: result.teamNotified,
+          },
+          200,
+          cors,
+        );
       }
 
       return json({ error: "not_found" }, 404, cors);
