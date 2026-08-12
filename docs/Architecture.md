@@ -30,13 +30,24 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/infrastructure/postgres/repositories.ts` — port implementations. `appendTurn` writes messages and conversation state in one transaction, since a reply persisted without its escalation state would leave a customer waiting on a handoff nobody was told about.
 - `src/knowledge/postgres-retriever.ts` — production retriever using coverage-based scoring (DEC-0010), replacing the in-memory reference implementation.
 
+**Session 006 additions — the web chat widget (first channel):**
+
+- `supabase/migrations/0002_widget_session_security.sql` — session token hashes, `last_activity_at`, and atomic rate-limit counters with `increment_rate_limit()`.
+- `src/application/session-token.ts` — CSPRNG token generation, SHA-256 hashing, timing-safe comparison.
+- `src/application/rate-limit.ts` + `src/infrastructure/postgres/pg-rate-limiter.ts` — fixed-window limiting per conversation and per business (DEC-0013).
+- `src/application/widget-conversation-service.ts` — the anonymous-visitor security boundary: employee availability, session token verification, rate limiting, input size caps. Transport-agnostic.
+- `src/http/widget-handler.ts` — web-standard `Request`/`Response` handler (works in Next.js, Vercel edge, or plain Node with no adapter), explicit CORS allowlist, error-code-to-status mapping, no internal detail in responses.
+- `public/widget.js` — dependency-free embeddable widget in Shadow DOM. All text inserted via `textContent`, never `innerHTML`: model output reading business-supplied knowledge is untrusted input for rendering.
+
 **Verification status:**
 
 | Gate | What it proves |
 |---|---|
 | 7 unit tests (Node 20 + 22 matrix) | Grounding/escalation safety contract holds; provider is never called without grounding |
 | `supabase/tests/` on real Postgres 16 | RLS blocks cross-tenant reads and writes; integrity constraints reject invalid states |
-| 8 integration tests on real Postgres | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
+| 8 persistence integration tests | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
+| 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
+| 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
 | 9 validator self-tests | The repo/decision validators actually fail when their rules are violated (DEC-0008) |
 | `scripts/validate_repo.py` | Required docs exist; every relative Markdown link resolves |
 | `scripts/validate_decisions.py` | No duplicate/out-of-order Decision IDs; required fields present; every cited DEC-XXXX exists |
@@ -100,5 +111,8 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0007 | Tenant isolation enforced at the database layer (RLS primary, app checks secondary) |
 | DEC-0010 | Retriever scoring is coverage-based, not raw ts_rank |
 | DEC-0011 | Integration tests fail rather than skip in CI |
+| DEC-0012 | Anonymous widget sessions authorized by hashed session tokens |
+| DEC-0013 | Widget turns rate limited per conversation and per business |
+| DEC-0014 | Test suites verified repeatable, not merely passing |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

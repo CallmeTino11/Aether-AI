@@ -56,7 +56,10 @@ jobs:
           psql -h localhost -U postgres -d postgres -c 'create database aether;'
           psql -h localhost -U postgres -d aether -c 'create extension if not exists pgcrypto;'
           psql -h localhost -U postgres -d aether -f supabase/tests/00_local_auth_stub.sql
-          psql -h localhost -U postgres -d aether -v ON_ERROR_STOP=1 -f supabase/migrations/0001_core_schema.sql
+          for migration in supabase/migrations/*.sql; do
+            echo "Applying $migration"
+            psql -h localhost -U postgres -d aether -v ON_ERROR_STOP=1 -f "$migration"
+          done
 
       - name: Verify tenant isolation and constraints
         run: |
@@ -64,5 +67,12 @@ jobs:
           psql -h localhost -U postgres -d aether -f supabase/tests/01_tenant_isolation.sql
           echo "RLS and constraint checks executed."
 
-      - name: Integration tests (persistence + retriever calibration)
+      - name: Integration tests (persistence, retriever calibration, widget security)
+        run: npm run test:integration
+
+      # Run twice. Tests that mutate shared state can pass on a clean database
+      # and fail on the second run — exactly what happened with rate-limit
+      # counters keyed to a fixed time window. A suite that only passes once is
+      # not a suite.
+      - name: Integration tests are repeatable
         run: npm run test:integration

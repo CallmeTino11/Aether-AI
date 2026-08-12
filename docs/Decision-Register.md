@@ -446,4 +446,117 @@ DEC-0008
 ### Notes
 None.
 
+---
+
+## DEC-0012 — Anonymous widget sessions are authorized by hashed session tokens
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+A conversation created through an anonymous channel is issued a 256-bit session token. Only its SHA-256 hash is persisted (`conversations.session_token_hash`); the plaintext is returned to the client once and never stored or logged. Continuing a conversation requires the token. A conversation with no token — i.e. one not created through an anonymous channel — can never be continued from the widget.
+
+### Reason
+The widget is an unauthenticated write path running under the service role with RLS bypassed (DEC-0007), so the application is the only authorization boundary. A conversation id alone is not a credential: ids appear in logs, referrer headers, and support tickets. Without a separate secret, anyone holding an id could post into a stranger's conversation and read the replies.
+
+### Impact
+- Engineering
+- Product
+- Customer Success
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0007
+
+### Notes
+Verified by tests that attempt the attacks: hijack-by-id, cross-business token reuse, and continuing a dashboard-created conversation are all rejected, and rejected before any AI provider call is made.
+
+---
+
+## DEC-0013 — Widget turns are rate limited per conversation and per business
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Every widget turn passes a fixed-window rate limiter before any provider call. Two scopes: per conversation (default 20/min) and per business (default 300/min). Counters are incremented by an atomic SQL function, never read-modify-write in application code. Rejections happen after authorization but before the provider call.
+
+### Reason
+Each turn costs an AI provider call, so an unlimited anonymous endpoint is an unbounded bill on a customer's account and a way to exhaust rate limits for real customers. The per-business scope is needed because per-conversation limits do not stop a distributed script opening many conversations. Atomicity matters: a read-modify-write implementation admits both of two concurrent turns — verified that the SQL function returns exactly 25 for 25 parallel requests, and exactly 20 for 20 parallel database connections.
+
+### Impact
+- Engineering
+- Product
+- Finance (direct cost control)
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0012
+
+### Notes
+Ordering is deliberate: authorization first so an attacker cannot burn a victim's quota, limiting before the provider call so a rejected turn costs nothing.
+
+---
+
+## DEC-0014 — Test suites must be verified repeatable, not merely passing
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+CI runs the integration suite twice in the same job. Any test that mutates shared state must clean up every key it can touch.
+
+### Reason
+The widget rate-limit tests inject a fixed clock so the window boundary is deterministic — which also means the same `(scope, key, window)` counter row is reused on every run. Cleanup initially removed only `widget-test%` keys and missed the business-scope keys (UUIDs), so the suite passed on a clean database and failed on the second run, with the business-limit test tripping on its first message instead of its third. The first green run was luck, not evidence.
+
+### Impact
+- Engineering
+- Infrastructure
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0008, DEC-0011
+
+### Notes
+Third in a family of false-confidence defects, after the subshell exit-code bug (DEC-0008) and silent integration skips (DEC-0011). Verified by three consecutive full runs, 29/29 each.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

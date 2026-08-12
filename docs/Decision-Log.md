@@ -4,6 +4,18 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 006: Web Chat Widget (first channel, end to end)
+
+- **Changes made:** Built the anonymous widget path end to end: session-token authorization, rate limiting, HTTP handler, and the embeddable browser widget.
+- **Security work:** the widget is an unauthenticated write path with RLS bypassed, so authorization moved into the application explicitly — hashed session tokens (DEC-0012) and two-scope atomic rate limiting (DEC-0013).
+- **Bug found:** the rate-limit tests passed on a clean database and failed on the second run — cleanup missed business-scope counter keys while the fixed test clock made the window deterministic. Fixed and guarded by running the suite twice in CI (DEC-0014).
+- **Documents modified:** Decision-Register, Architecture, Roadmap, ci.yml, supabase/tests/README.md, src/index.ts
+- **Documents created:** `supabase/migrations/0002_widget_session_security.sql`, `src/application/{session-token,rate-limit,widget-conversation-service}.ts`, `src/infrastructure/postgres/pg-rate-limiter.ts`, `src/http/widget-handler.ts`, `public/widget.js`, `src/__tests__/{widget-security,widget-http}.integration.test.ts`, session 006 record
+- **Decisions created:** DEC-0012, DEC-0013, DEC-0014
+- **Decisions referenced:** DEC-0003, DEC-0005, DEC-0007, DEC-0008, DEC-0011
+- **Implementation changes:** 29 integration tests passing, verified over three consecutive runs; CI applies all migrations in order and runs the suite twice
+- **Outstanding issues:** See `sessions/2026-08-11-session-006.md`
+
 ## 2026-08-11 — Session 005: Persistence Layer
 
 - **Changes made:** Implemented persistence ports, Postgres repositories with transactional turn writes, the production full-text retriever, and the turn use case.

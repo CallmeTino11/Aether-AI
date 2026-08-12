@@ -42,3 +42,31 @@ export {
   PgKnowledgeRepository,
   PgLeadRepository,
 } from "./infrastructure/postgres/repositories.js";
+
+// Widget channel (session 006)
+export {
+  WidgetConversationService,
+  WidgetError,
+  type StartedConversation,
+  type SendMessageInput,
+  type SendMessageOutput,
+  type WidgetConversationServiceDeps,
+  type WidgetSessionRepository,
+} from "./application/widget-conversation-service.js";
+export {
+  issueSessionToken,
+  hashSessionToken,
+  sessionTokenMatches,
+  type IssuedSessionToken,
+} from "./application/session-token.js";
+export {
+  DEFAULT_RATE_LIMIT_RULES,
+  windowStart,
+  type RateLimiter,
+  type RateLimitDecision,
+  type RateLimitRule,
+  type RateLimitScope,
+} from "./application/rate-limit.js";
+export { PgRateLimiter } from "./infrastructure/postgres/pg-rate-limiter.js";
+export { PgWidgetSessionRepository } from "./infrastructure/postgres/repositories.js";
+export { createWidgetHandler, type WidgetHttpOptions } from "./http/widget-handler.js";

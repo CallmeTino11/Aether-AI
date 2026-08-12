@@ -42,6 +42,7 @@ import type {
   LeadRepository,
   PersistedMessage,
 } from "../../application/ports.js";
+import type { WidgetSessionRepository } from "../../application/widget-conversation-service.js";
 import type { SqlExecutor } from "./sql-executor.js";
 
 // --------------------------------------------------------------------------
@@ -400,5 +401,37 @@ export class PgLeadRepository implements LeadRepository {
       ...(row.phone ? { phone: row.phone } : {}),
       ...(row.notes ? { notes: row.notes } : {}),
     }));
+  }
+}
+
+// --------------------------------------------------------------------------
+// Widget sessions
+// --------------------------------------------------------------------------
+
+/**
+ * Stores only the SHA-256 hash of a widget session token (migration 0002).
+ * The plaintext never reaches the database, so a dump yields no live session
+ * credentials.
+ */
+export class PgWidgetSessionRepository implements WidgetSessionRepository {
+  constructor(private readonly sql: SqlExecutor) {}
+
+  async attachSessionToken(id: ConversationId, tokenHash: string): Promise<void> {
+    await this.sql.query(
+      "update conversations set session_token_hash = $2, last_activity_at = now() where id = $1",
+      [id, tokenHash],
+    );
+  }
+
+  async findSessionTokenHash(id: ConversationId): Promise<string | null> {
+    const rows = await this.sql.query<{ session_token_hash: string | null }>(
+      "select session_token_hash from conversations where id = $1",
+      [id],
+    );
+    return rows[0]?.session_token_hash ?? null;
+  }
+
+  async touchActivity(id: ConversationId): Promise<void> {
+    await this.sql.query("update conversations set last_activity_at = now() where id = $1", [id]);
   }
 }
