@@ -718,4 +718,119 @@ DEC-0007, DEC-0012
 ### Notes
 Guarded by tests that attack it: cross-tenant read, write, and delete attempts; interleaved concurrent users on a two-connection pool; and a probe asserting a released connection carries no identity. The last one was confirmed to fail against a session-level implementation before being trusted. Serial test execution was added after the worker's global claim queue caused cross-file interference — the first symptom was a suite that failed on run one and passed on run two.
 
+---
+
+## DEC-0019 — JWT verification uses an audited library with pinned algorithms
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Supabase token verification uses the `jose` library, with accepted algorithms pinned per mode (HS256 for shared-secret projects, RS256/ES256 for JWKS projects). Both Supabase token shapes are supported. Short JWT secrets are refused at construction, and expiry is detected via the library's structured error code rather than message text.
+
+### Reason
+This is the gate in front of every RLS-scoped query, so a forged token defeats every policy behind it. JWT verification looks like base64 plus a signature check, which is exactly why hand-rolled implementations keep failing the same four ways: `alg: none` accepted as valid, algorithm confusion (an RS256 *public* key used as an HMAC secret, letting anyone forge tokens from public material), unchecked expiry, and non-constant-time comparison. These are solved problems; reimplementing them would invent risk for no benefit.
+
+Algorithm pinning is the part that is easy to omit: without it, a token can declare `alg: HS256` against a project configured for asymmetric keys, and the public key gets used as the HMAC secret.
+
+### Impact
+- Engineering
+- Product
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0018
+
+### Notes
+Twelve tests forge tokens rather than validating good ones, including a real algorithm-confusion attack against a live JWKS endpoint. One caught a genuine bug during development: expiry detection matched on message text, but the message is "exp claim timestamp check failed" and contains no such word — every expired session would have been misreported as invalid, sending users to a login screen instead of a token refresh.
+
+---
+
+## DEC-0020 — Configuration is validated at startup, strictly in production
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+`loadConfig` validates all environment configuration eagerly and refuses to start on anything missing. Production additionally requires an email provider and a non-empty widget origin allowlist. The AI model has no default value.
+
+### Reason
+Every one of these produces a deployment that looks healthy and fails later in front of a customer: no email provider means alerts queue forever while the dashboard reports them pending; an empty origin allowlist means the widget silently fails to load on the customer's site; a defaulted model means cost and answer quality get chosen by omission rather than decision. Failing at boot converts each into a deployment that never starts.
+
+### Impact
+- Engineering
+- Infrastructure
+- Finance
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0017
+
+### Notes
+Development deliberately runs without an email provider so local work does not require a Resend account; the console sender covers it and refuses to run in production (DEC-0017).
+
+---
+
+## DEC-0021 — The scheduled-jobs endpoint is authenticated with a shared secret
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Scheduled work runs behind an HTTP endpoint requiring a shared secret, compared in constant time. The handler refuses to be constructed with a secret shorter than 16 characters. Housekeeping failures (rate-limit cleanup) are logged without failing a run that delivered successfully.
+
+### Reason
+Serverless schedulers invoke work over HTTP, which means the endpoint is reachable by anyone. Unauthenticated, it lets a stranger drain the notification queue and trigger provider calls at will. Refusing to start on a weak secret matters because a cron endpoint that silently runs unauthenticated is worse than one that fails loudly — nothing about its behaviour would look wrong.
+
+### Impact
+- Engineering
+- Infrastructure
+- Finance
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0013, DEC-0015
+
+### Notes
+Tested to reject unauthenticated requests, wrong secrets, and near-miss secrets differing in one character, and asserted that a rejected request does not drain the queue.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

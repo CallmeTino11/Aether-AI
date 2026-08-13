@@ -37,6 +37,23 @@ This repository is the **single source of truth** for company knowledge, enginee
 └── .github/workflows/     ← documentation & decision validation automation
 ```
 
+## Running it
+
+```bash
+npm ci
+cp .env.example .env        # fill in DATABASE_URL, ANTHROPIC_API_KEY, etc.
+npm test                    # unit tests, no database needed
+```
+
+With a database:
+
+```bash
+for m in supabase/migrations/*.sql; do psql -d aether -v ON_ERROR_STOP=1 -f "$m"; done
+DATABASE_URL=postgres://... npm run test:integration
+```
+
+Configuration is validated at startup and the app refuses to run half-configured — see `.env.example` and `docs/Architecture.md`.
+
 ## Operating Model
 
 - **All departments — CEO/Strategy, Product, Marketing, Engineering, Documentation — currently operate under Claude.** (See `DEC-0002` in the Decision Register.)

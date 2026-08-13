@@ -71,6 +71,24 @@ export interface NotificationSender {
 }
 
 /**
+ * A sender signals an unretryable failure by throwing an error with
+ * `permanent: true` — a rejected address or malformed request will fail
+ * identically on every attempt, so burning six retries only delays telling the
+ * business something is wrong.
+ *
+ * Duck-typed deliberately: the application layer must not import provider
+ * classes to recognise their errors.
+ */
+export function isPermanentDeliveryFailure(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "permanent" in error &&
+    (error as { permanent?: unknown }).permanent === true
+  );
+}
+
+/**
  * Attempt ceiling. Past this a notification is marked failed and stops
  * retrying: an alert about a conversation from two days ago is no longer
  * actionable, and an endlessly retrying row hides genuine new failures.

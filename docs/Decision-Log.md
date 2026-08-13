@@ -4,6 +4,17 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 009: Production Readiness
+
+- **Changes made:** Closed the three gaps between a working codebase and a deployable product — real Supabase JWT verification, a real email provider, and an authenticated scheduled-jobs endpoint — plus a composition root with eager config validation.
+- **Bug found:** expiry detection matched on JWT error *message text*, but jose's message is "exp claim timestamp check failed" and contains no such word. Every expired session would have been misreported as invalid, sending users to re-login instead of a token refresh. Fixed by matching the structured error code.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, src/index.ts, notification worker and ports
+- **Documents created:** `src/infrastructure/auth/supabase-jwt.ts`, `src/infrastructure/notifications/resend-sender.ts`, `src/http/scheduled-jobs-handler.ts`, `src/app.ts`, `vercel.json`, `.env.example`, `src/__tests__/{supabase-jwt,delivery-and-cron,config}.test.ts`, session 009 record
+- **Decisions created:** DEC-0019, DEC-0020, DEC-0021
+- **Decisions referenced:** DEC-0003, DEC-0013, DEC-0015, DEC-0017, DEC-0018
+- **Implementation changes:** 43 unit + 65 integration tests passing; integration verified twice
+- **Outstanding issues:** See `sessions/2026-08-11-session-009.md`
+
 ## 2026-08-11 — Session 008: Dashboard (first authenticated surface)
 
 - **Changes made:** Built the self-serve dashboard — hiring, knowledge, notification recipients, escalation review, and knowledge-gap grouping — plus the RLS-scoped executor that makes Row Level Security actually apply.

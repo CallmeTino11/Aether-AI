@@ -56,6 +56,14 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/http/dashboard-handler.ts` — identity from a verified bearer token only; RLS rejections become a generic 403 rather than leaking schema details.
 - `public/dashboard.html` — the owner-facing UI.
 
+**Session 009 additions — production readiness:**
+
+- `src/infrastructure/auth/supabase-jwt.ts` — real token verification via `jose`, algorithms pinned per mode (DEC-0019).
+- `src/infrastructure/notifications/resend-sender.ts` — first real delivery provider; distinguishes permanent failures (bad address) from retryable ones (outage, rate limit).
+- `src/http/scheduled-jobs-handler.ts` — cron endpoint behind a constant-time shared secret (DEC-0021).
+- `src/app.ts` — the composition root: the only file reading environment variables, with eager validation (DEC-0020).
+- `vercel.json`, `.env.example` — deployment configuration.
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -65,6 +73,9 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 | 8 persistence integration tests | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
 | 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
 | 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
+| 12 JWT tests | Forged tokens rejected: `alg:none`, wrong secret, tampered payload, wrong issuer/audience, non-uuid subject, and a live algorithm-confusion attack against a JWKS endpoint |
+| 10 delivery/cron tests | Permanent vs retryable failures; cron rejects unauthenticated, wrong, and near-miss secrets without draining the queue |
+| 8 config tests | Every misconfiguration that would fail later in front of a customer fails at boot instead |
 | 15 dashboard RLS tests | Cross-tenant read/write/delete rejected; outsiders see nothing; identity never leaks across pooled connections, including under interleaved concurrent users |
 | 8 dashboard HTTP tests | Identity comes from the token, not the payload — a request naming another business writes to its own |
 | 13 notification tests | Alert shares the escalation's transaction and rolls back with it; pending alerts deduplicated per conversation; backoff, abandonment, and missing-recipient handling; concurrent workers never double-claim |
@@ -138,5 +149,8 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0016 | Outbox claiming requires a lease, not just SKIP LOCKED |
 | DEC-0017 | The product must not claim an action it has not taken |
 | DEC-0018 | Dashboard runs as the user under RLS with transaction-local identity |
+| DEC-0019 | JWT verification uses an audited library with pinned algorithms |
+| DEC-0020 | Configuration validated at startup, strictly in production |
+| DEC-0021 | Scheduled-jobs endpoint authenticated with a shared secret |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

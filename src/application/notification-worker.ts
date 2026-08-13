@@ -14,6 +14,7 @@
 
 import {
   backoffDelayMs,
+  isPermanentDeliveryFailure,
   MAX_DELIVERY_ATTEMPTS,
   type NotificationOutboxRepository,
   type NotificationSender,
@@ -69,7 +70,9 @@ export class NotificationWorker {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         // `attempts` was already incremented by the claim, so it reflects this try.
-        if (entry.attempts >= MAX_DELIVERY_ATTEMPTS) {
+        // A permanent failure stops immediately: retrying a rejected address
+        // five more times only delays telling the business it is wrong.
+        if (isPermanentDeliveryFailure(error) || entry.attempts >= MAX_DELIVERY_ATTEMPTS) {
           await this.deps.outbox.markFailed(entry.id, message, null);
           abandoned += 1;
         } else {

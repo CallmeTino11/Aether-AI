@@ -12,7 +12,9 @@ Create the operating system for AI employees that powers millions of businesses 
 
 ## Current Focus
 
-**AI Receptionist v1 (DEC-0004)** — text-channel-first receptionist on the shared Digital Employee foundation.
+**AI Receptionist v1 (DEC-0004)** — feature-complete for a first deployment: widget, grounding, escalation, notifications, dashboard, auth, and scheduling are all in place and tested. Remaining work is a real deployment and first customer, not missing capability.
+
+**Original scope note:** — text-channel-first receptionist on the shared Digital Employee foundation.
 
 ## Near-Term (committed)
 
@@ -28,8 +30,10 @@ Create the operating system for AI employees that powers millions of businesses 
 
 ## Later
 
-- Real email/SMS provider for notifications (business decision: cost, deliverability, region). The `NotificationSender` port means this is one class.
-- Scheduled worker invocation (Vercel cron) for the outbox and rate-limit cleanup.
+- ~~Real email provider~~ — Done (Resend adapter; swapping providers is one class)
+- ~~Scheduled worker invocation~~ — Done, DEC-0021 (authenticated cron endpoint + `vercel.json`)
+- SMS delivery (Twilio) — the `sms` channel exists in the schema but has no sender
+- Multi-business users: `resolveBusiness` takes the first membership, so a user in two businesses sees only one
 
 ## Long-Term
 
