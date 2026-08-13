@@ -73,6 +73,8 @@ jobs:
       # Run twice. Tests that mutate shared state can pass on a clean database
       # and fail on the second run — exactly what happened with rate-limit
       # counters keyed to a fixed time window. A suite that only passes once is
-      # not a suite.
+      # not a suite. (Integration files run serially: they share one database
+      # and the notification worker claims from a global queue, so parallel
+      # files interfere — see DEC-0018.)
       - name: Integration tests are repeatable
         run: npm run test:integration

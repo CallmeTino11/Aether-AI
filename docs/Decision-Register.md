@@ -675,4 +675,47 @@ DEC-0008, DEC-0011, DEC-0014, DEC-0015
 ### Notes
 No real email/SMS provider is chosen yet — that is a business decision (cost, deliverability, region). The `NotificationSender` port means adopting one is a single class, and the console sender keeps the whole path exercisable meanwhile without pretending to deliver.
 
+---
+
+## DEC-0018 — Dashboard queries run as the user under RLS, with transaction-local identity
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Dashboard queries execute as the authenticated user via `AuthenticatedSqlExecutor`, which assumes a non-owner role (`app_user`) and sets the user identity **transaction-locally** on every statement. Session-level configuration is never used, and every authenticated statement runs inside a transaction. Identity is derived from a verified bearer token, never from a request body or query parameter. Integration test files run serially because they share one database.
+
+### Reason
+Two Postgres behaviours make the naive approach unsafe, both confirmed empirically rather than assumed:
+
+1. **Session-level `set_config(..., false)` persists after commit.** With connection pooling, the next request to borrow that connection inherits the previous user's identity — one user reading another's business, with every RLS policy still correct and still in place.
+2. **Transaction-local `set_config(..., true)` reverts to the session value, not to null.** So "clearing" identity restores a stale one rather than none.
+
+Running as the table owner would also silently disable RLS entirely, since Postgres exempts owners — policies would review as correct and enforce nothing. Outside a transaction there is now no identity at all, so RLS denies everything: the failure direction is closed.
+
+### Impact
+- Engineering
+- Product
+- Customer Success
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0007, DEC-0012
+
+### Notes
+Guarded by tests that attack it: cross-tenant read, write, and delete attempts; interleaved concurrent users on a two-connection pool; and a probe asserting a released connection carries no identity. The last one was confirmed to fail against a session-level implementation before being trusted. Serial test execution was added after the worker's global claim queue caused cross-file interference — the first symptom was a suite that failed on run one and passed on run two.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

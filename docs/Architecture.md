@@ -48,6 +48,14 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/infrastructure/notifications/console-sender.ts` — development sender that **refuses to run in production** (DEC-0017).
 - `appendTurn` now takes the notification as a parameter so the escalation and its alert share one transaction by construction (DEC-0015).
 
+**Session 008 additions — the dashboard (first authenticated surface):**
+
+- `supabase/migrations/0004_authenticated_role.sql` — the `app_user` role. Deliberately not the table owner: Postgres exempts owners from RLS, so owner-run queries would leave every policy in place and enforce none.
+- `src/infrastructure/postgres/authenticated-executor.ts` — runs each statement as the logged-in user with transaction-local identity (DEC-0018).
+- `src/application/dashboard-service.ts` — hire employees, manage knowledge and notification recipients, review escalations, and group repeated unanswered questions into knowledge gaps. Contains **no** `business_id = ?` filters: RLS is the boundary, and adding application filters would mask a broken policy.
+- `src/http/dashboard-handler.ts` — identity from a verified bearer token only; RLS rejections become a generic 403 rather than leaking schema details.
+- `public/dashboard.html` — the owner-facing UI.
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -57,6 +65,8 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 | 8 persistence integration tests | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
 | 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
 | 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
+| 15 dashboard RLS tests | Cross-tenant read/write/delete rejected; outsiders see nothing; identity never leaks across pooled connections, including under interleaved concurrent users |
+| 8 dashboard HTTP tests | Identity comes from the token, not the payload — a request naming another business writes to its own |
 | 13 notification tests | Alert shares the escalation's transaction and rolls back with it; pending alerts deduplicated per conversation; backoff, abandonment, and missing-recipient handling; concurrent workers never double-claim |
 | 9 validator self-tests | The repo/decision validators actually fail when their rules are violated (DEC-0008) |
 | `scripts/validate_repo.py` | Required docs exist; every relative Markdown link resolves |
@@ -127,5 +137,6 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0015 | Escalation notifications use a transactional outbox |
 | DEC-0016 | Outbox claiming requires a lease, not just SKIP LOCKED |
 | DEC-0017 | The product must not claim an action it has not taken |
+| DEC-0018 | Dashboard runs as the user under RLS with transaction-local identity |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

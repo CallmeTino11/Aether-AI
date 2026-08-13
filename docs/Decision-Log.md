@@ -4,6 +4,18 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 008: Dashboard (first authenticated surface)
+
+- **Changes made:** Built the self-serve dashboard — hiring, knowledge, notification recipients, escalation review, and knowledge-gap grouping — plus the RLS-scoped executor that makes Row Level Security actually apply.
+- **Security findings (both verified empirically before designing around them):** session-level `set_config` persists after commit and leaks identity across pooled connections; transaction-local `set_config` reverts to the *session* value rather than null. Also: running as the table owner would silently bypass RLS entirely.
+- **Test isolation bug:** the suite failed on run one and passed on run two. Cause: `node --test` parallelises files, these files share one database, and the notification worker claims from a global queue. Fixed by serial execution.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, ci.yml, package.json, src/index.ts
+- **Documents created:** `supabase/migrations/0004_authenticated_role.sql`, `src/infrastructure/postgres/authenticated-executor.ts`, `src/application/dashboard-service.ts`, `src/http/dashboard-handler.ts`, `public/dashboard.html`, `src/__tests__/{dashboard-rls,dashboard-http}.integration.test.ts`, session 008 record
+- **Decisions created:** DEC-0018
+- **Decisions referenced:** DEC-0003, DEC-0007, DEC-0012, DEC-0014, DEC-0017
+- **Implementation changes:** 65 integration tests passing, verified across four consecutive runs from a clean database
+- **Outstanding issues:** See `sessions/2026-08-11-session-008.md`
+
 ## 2026-08-11 — Session 007: Escalation Notifications
 
 - **Changes made:** Built the notification outbox, worker, and recipient model; closed the gap where the widget promised customers a team member had been notified when nobody was.

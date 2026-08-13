@@ -95,3 +95,13 @@ export {
   ConsoleNotificationSender,
   type ConsoleNotificationSenderOptions,
 } from "./infrastructure/notifications/console-sender.js";
+
+// Dashboard (session 008)
+export {
+  DashboardService,
+  DashboardError,
+  type EscalatedConversationSummary,
+  type KnowledgeGap,
+} from "./application/dashboard-service.js";
+export { AuthenticatedSqlExecutor } from "./infrastructure/postgres/authenticated-executor.js";
+export { createDashboardHandler, type DashboardHttpDeps } from "./http/dashboard-handler.js";

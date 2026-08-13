@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Your team — Aether AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /*
+    Design intent: a staff roster, not a SaaS console.
+    The product's premise is that hiring a digital employee should feel like
+    hiring a person, so the interface borrows from personnel records and
+    shift handovers rather than dashboards. The escalation note is the
+    signature element: the customer's unanswered question is set large,
+    because that sentence is the only thing an owner actually needs to read.
+    Everything else stays quiet so it can carry that weight.
+  */
+  :root {
+    --ink:        #12211C;
+    --ink-soft:   #4A5C55;
+    --paper:      #EEF0EC;
+    --card:       #FFFFFF;
+    --moss:       #2F5D50;
+    --sage:       #8FA99B;
+    --amber:      #B0722A;
+    --clay:       #9C3F2C;
+    --rule:       #D6DCD6;
+
+    --display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+    --body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono:    "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  a { color: var(--moss); }
+
+  .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* --- Left rail: the "staff file" spine ------------------------------- */
+  .rail {
+    border-right: 1px solid var(--rule);
+    padding: 28px 20px;
+    position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .mark { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+  .mark span { color: var(--moss); }
+  .biz { font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+         letter-spacing: .1em; color: var(--ink-soft); }
+  nav { display: flex; flex-direction: column; gap: 2px; }
+  nav button {
+    all: unset; cursor: pointer; padding: 8px 10px; border-radius: 6px;
+    font-size: 14px; color: var(--ink-soft);
+  }
+  nav button:hover { background: rgba(47,93,80,.07); color: var(--ink); }
+  nav button[aria-current="true"] { background: var(--moss); color: #fff; font-weight: 500; }
+  nav button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+
+  /* --- Main ------------------------------------------------------------ */
+  main { padding: 36px 40px 80px; max-width: 940px; }
+  h1 {
+    font-family: var(--display); font-weight: 800; letter-spacing: -.025em;
+    font-size: 30px; margin: 0 0 4px;
+  }
+  .lede { color: var(--ink-soft); margin: 0 0 28px; max-width: 56ch; }
+
+  section[hidden] { display: none; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--ink-soft); margin: 32px 0 10px;
+  }
+
+  /* --- Roster ---------------------------------------------------------- */
+  .roster { display: grid; gap: 10px; }
+  .staff {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 16px 18px; display: flex; align-items: center; gap: 16px;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex: none;
+    background: var(--moss); color: #fff; display: grid; place-items: center;
+    font-family: var(--display); font-weight: 600; font-size: 16px;
+  }
+  .staff-main { flex: 1; min-width: 0; }
+  .staff-name { font-family: var(--display); font-weight: 600; font-size: 17px; }
+  .staff-role { font-size: 13px; color: var(--ink-soft); text-transform: capitalize; }
+
+  .status {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--rule); color: var(--ink-soft); white-space: nowrap;
+  }
+  .status[data-s="active"]      { border-color: var(--moss); color: var(--moss); }
+  .status[data-s="onboarding"]  { border-color: var(--amber); color: var(--amber); }
+
+  /* --- Handover notes: the signature element --------------------------- */
+  .note {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 20px 22px; margin-bottom: 12px;
+    border-left: 3px solid var(--amber);
+  }
+  .note-meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-soft);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .question {
+    font-family: var(--display); font-weight: 400; font-size: 21px;
+    line-height: 1.35; letter-spacing: -.015em; margin: 12px 0;
+  }
+  .question::before { content: "\201C"; color: var(--sage); }
+  .question::after  { content: "\201D"; color: var(--sage); }
+  .why { font-size: 13.5px; color: var(--ink-soft); }
+
+  .chip {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+  .chip[data-n="delivered"] { border-color: var(--moss); color: var(--moss); }
+  .chip[data-n="pending"]   { border-color: var(--amber); color: var(--amber); }
+  .chip[data-n="failed"],
+  .chip[data-n="none"]      { border-color: var(--clay); color: var(--clay); }
+
+  .note-actions { margin-top: 14px; display: flex; gap: 8px; }
+
+  /* --- Knowledge ------------------------------------------------------- */
+  .know { background: var(--card); border: 1px solid var(--rule); border-radius: 10px;
+          padding: 14px 16px; margin-bottom: 8px; display: flex; gap: 14px; align-items: flex-start; }
+  .know-kind { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+               letter-spacing: .08em; color: var(--sage); padding-top: 3px; min-width: 62px; }
+  .know-title { font-weight: 600; }
+  .know-body { font-size: 13.5px; color: var(--ink-soft); }
+
+  .gap { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0;
+         border-bottom: 1px dashed var(--rule); }
+  .gap-count { font-family: var(--mono); font-size: 12px; color: var(--amber); white-space: nowrap; }
+
+  /* --- Controls -------------------------------------------------------- */
+  button.action {
+    all: unset; cursor: pointer; font-family: var(--body); font-size: 13px; font-weight: 500;
+    padding: 7px 13px; border-radius: 6px; background: var(--moss); color: #fff;
+  }
+  button.action.quiet { background: transparent; color: var(--moss); border: 1px solid var(--rule); }
+  button.action:hover { filter: brightness(1.08); }
+  button.action:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  form.inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end;
+                background: var(--card); border: 1px solid var(--rule);
+                border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px;
+          color: var(--ink-soft); flex: 1; min-width: 140px; }
+  input, select, textarea {
+    font-family: var(--body); font-size: 14px; color: var(--ink);
+    padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; background: #fff;
+  }
+  textarea { min-height: 74px; resize: vertical; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--moss); outline-offset: -1px;
+  }
+
+  .empty { background: var(--card); border: 1px dashed var(--rule); border-radius: 10px;
+           padding: 26px; color: var(--ink-soft); }
+  .empty strong { display: block; color: var(--ink); font-family: var(--display);
+                  font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+           background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 8px;
+           font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .18s; }
+  .toast[data-show="true"] { opacity: 1; }
+
+  @media (max-width: 720px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail { position: static; height: auto; flex-direction: row; align-items: center;
+            justify-content: space-between; padding: 16px; }
+    .rail nav { flex-direction: row; flex-wrap: wrap; }
+    .rail .biz { display: none; }
+    main { padding: 24px 18px 60px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <div>
+      <div class="mark">Aether<span>.</span></div>
+      <div class="biz" id="bizName">loading</div>
+    </div>
+    <nav id="nav">
+      <button data-view="notes" aria-current="true">Needs you</button>
+      <button data-view="team">Your team</button>
+      <button data-view="knowledge">What they know</button>
+      <button data-view="alerts">Who gets told</button>
+    </nav>
+  </aside>
+
+  <main>
+    <!-- Handover notes -->
+    <section id="view-notes">
+      <h1>Needs you</h1>
+      <p class="lede">Questions your team couldn't answer from what they know. Each one is a customer waiting.</p>
+      <div id="notes"></div>
+
+      <div class="eyebrow">Asked more than once</div>
+      <div id="gaps"></div>
+    </section>
+
+    <!-- Roster -->
+    <section id="view-team" hidden>
+      <h1>Your team</h1>
+      <p class="lede">New hires start in onboarding. Teach them first, then put them on shift.</p>
+      <form class="inline" id="hireForm">
+        <label>Name<input name="name" placeholder="Maya" required /></label>
+        <label>Role
+          <select name="role">
+            <option value="receptionist">Receptionist</option>
+            <option value="secretary">Secretary</option>
+            <option value="sales">Sales</option>
+            <option value="support">Support</option>
+          </select>
+        </label>
+        <label>How they should sound<input name="tone" placeholder="warm and professional" /></label>
+        <button class="action" type="submit">Hire</button>
+      </form>
+      <div class="roster" id="roster"></div>
+    </section>
+
+    <!-- Knowledge -->
+    <section id="view-knowledge" hidden>
+      <h1>What they know</h1>
+      <p class="lede">Your team answers only from this. Anything missing becomes a question for you.</p>
+      <form class="inline" id="knowForm">
+        <label>Kind
+          <select name="kind">
+            <option value="hours">Hours</option>
+            <option value="pricing">Pricing</option>
+            <option value="service">Service</option>
+            <option value="policy">Policy</option>
+            <option value="faq">FAQ</option>
+          </select>
+        </label>
+        <label>Title<input name="title" placeholder="Opening hours" required /></label>
+        <label style="flex-basis:100%">Details<textarea name="content" placeholder="We're open Monday to Friday, 8am to 5pm." required></textarea></label>
+        <button class="action" type="submit">Add</button>
+      </form>
+      <div id="knowledge"></div>
+    </section>
+
+    <!-- Recipients -->
+    <section id="view-alerts" hidden>
+      <h1>Who gets told</h1>
+      <p class="lede">When your team can't answer something, these people hear about it.</p>
+      <form class="inline" id="recForm">
+        <label>Channel
+          <select name="channel"><option value="email">Email</option><option value="sms">SMS</option></select>
+        </label>
+        <label>Address<input name="address" placeholder="team@yourbusiness.co.za" required /></label>
+        <button class="action" type="submit">Add</button>
+      </form>
+      <div id="recipients"></div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  var API = "/api/dashboard";
+  var state = { data: null };
+
+  function el(tag, className, text) {
+    var n = document.createElement(tag);
+    if (className) n.className = className;
+    // textContent throughout: this renders customer-written messages and
+    // business-supplied knowledge, neither of which is trusted markup.
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  var toastTimer;
+  function toast(message) {
+    var t = document.getElementById("toast");
+    t.textContent = message;
+    t.setAttribute("data-show", "true");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.setAttribute("data-show", "false"); }, 2600);
+  }
+
+  function api(path, options) {
+    return fetch(API + path, options).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (body) {
+        if (!response.ok) throw new Error(body.message || "That didn't work.");
+        return body;
+      });
+    });
+  }
+
+  function empty(container, heading, detail) {
+    var box = el("div", "empty");
+    box.appendChild(el("strong", null, heading));
+    box.appendChild(el("div", null, detail));
+    container.appendChild(box);
+  }
+
+  // --- Renderers ---------------------------------------------------------
+
+  function renderNotes() {
+    var host = document.getElementById("notes");
+    host.textContent = "";
+    var items = state.data.escalations || [];
+    if (items.length === 0) {
+      empty(host, "Nothing waiting", "Your team answered everything it was asked.");
+      return;
+    }
+    items.forEach(function (item) {
+      var note = el("div", "note");
+
+      var meta = el("div", "note-meta");
+      meta.appendChild(el("span", null, item.employeeName));
+      meta.appendChild(el("span", null, item.channel.replace("_", " ")));
+      meta.appendChild(el("span", null, new Date(item.escalatedAt).toLocaleString()));
+
+      // Says plainly whether anyone was actually told (DEC-0017).
+      var chip = el("span", "chip",
+        item.notificationStatus === "delivered" ? "team notified"
+        : item.notificationStatus === "pending" ? "sending alert"
+        : item.notificationStatus === "failed"  ? "alert failed"
+        : "no one alerted");
+      chip.setAttribute("data-n", item.notificationStatus);
+      meta.appendChild(chip);
+      note.appendChild(meta);
+
+      note.appendChild(el("div", "question", item.lastCustomerMessage || "(no message)"));
+      note.appendChild(el("div", "why", item.reason));
+
+      var actions = el("div", "note-actions");
+      var done = el("button", "action quiet", "Mark handled");
+      done.addEventListener("click", function () {
+        api("/conversations/" + encodeURIComponent(item.conversationId) + "/resolve", { method: "POST" })
+          .then(function () { toast("Marked handled"); return load(); })
+          .catch(function (error) { toast(error.message); });
+      });
+      actions.appendChild(done);
+      note.appendChild(actions);
+
+      host.appendChild(note);
+    });
+  }
+
+  function renderGaps() {
+    var host = document.getElementById("gaps");
+    host.textContent = "";
+    var gaps = (state.data.gaps || []).filter(function (g) { return g.occurrences > 1; });
+    if (gaps.length === 0) {
+      host.appendChild(el("div", "why", "Nothing has come up twice yet."));
+      return;
+    }
+    gaps.forEach(function (gap) {
+      var row = el("div", "gap");
+      row.appendChild(el("span", null, gap.question));
+      row.appendChild(el("span", "gap-count", gap.occurrences + " times"));
+      host.appendChild(row);
+    });
+  }
+
+  function renderRoster() {
+    var host = document.getElementById("roster");
+    host.textContent = "";
+    var team = state.data.employees || [];
+    if (team.length === 0) {
+      empty(host, "No one hired yet", "Hire your first employee above. They'll start in onboarding.");
+      return;
+    }
+    team.forEach(function (person) {
+      var row = el("div", "staff");
+      row.appendChild(el("div", "avatar", (person.persona.name || "?").charAt(0).toUpperCase()));
+
+      var main = el("div", "staff-main");
+      main.appendChild(el("div", "staff-name", person.persona.name));
+      main.appendChild(el("div", "staff-role", person.role + " · " + person.persona.tone));
+      row.appendChild(main);
+
+      var status = el("span", "status", person.status);
+      status.setAttribute("data-s", person.status);
+      row.appendChild(status);
+
+      var next = person.status === "active" ? "paused" : "active";
+      var toggle = el("button", "action quiet", next === "active" ? "Put on shift" : "Pause");
+      toggle.addEventListener("click", function () {
+        api("/employees/" + encodeURIComponent(person.id) + "/status", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ status: next })
+        }).then(function () { toast(next === "active" ? "On shift" : "Paused"); return load(); })
+          .catch(function (error) { toast(error.message); });
+      });
+      row.appendChild(toggle);
+
+      host.appendChild(row);
+    });
+  }
+
+  function renderKnowledge() {
+    var host = document.getElementById("knowledge");
+    host.textContent = "";
+    var items = state.data.knowledge || [];
+    if (items.length === 0) {
+      empty(host, "Nothing taught yet", "Until you add something, your team will pass every question to you.");
+      return;
+    }
+    items.forEach(function (item) {
+      var row = el("div", "know");
+      row.appendChild(el("div", "know-kind", item.kind));
+      var body = el("div");
+      body.style.flex = "1";
+      body.appendChild(el("div", "know-title", item.title));
+      body.appendChild(el("div", "know-body", item.content));
+      row.appendChild(body);
+
+      var remove = el("button", "action quiet", "Remove");
+      remove.addEventListener("click", function () {
+        api("/knowledge/" + encodeURIComponent(item.id), { method: "DELETE" })
+          .then(function () { toast("Removed"); return load(); })
+          .catch(function (error) { toast(error.message); });
+      });
+      row.appendChild(remove);
+      host.appendChild(row);
+    });
+  }
+
+  function renderRecipients() {
+    var host = document.getElementById("recipients");
+    host.textContent = "";
+    var people = state.data.recipients || [];
+    if (people.length === 0) {
+      empty(host, "No one is being told",
+        "Add an address, or unanswered questions will sit here unseen.");
+      return;
+    }
+    people.forEach(function (person) {
+      var row = el("div", "know");
+      row.appendChild(el("div", "know-kind", person.channel));
+      var body = el("div"); body.style.flex = "1";
+      body.appendChild(el("div", "know-title", person.address));
+      row.appendChild(body);
+      var remove = el("button", "action quiet", "Remove");
+      remove.addEventListener("click", function () {
+        api("/recipients", {
+          method: "DELETE",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ channel: person.channel, address: person.address })
+        }).then(function () { toast("Removed"); return load(); })
+          .catch(function (error) { toast(error.message); });
+      });
+      row.appendChild(remove);
+      host.appendChild(row);
+    });
+  }
+
+  function renderAll() {
+    renderNotes(); renderGaps(); renderRoster(); renderKnowledge(); renderRecipients();
+  }
+
+  // --- Forms -------------------------------------------------------------
+
+  function wireForm(formId, path, build, successMessage) {
+    document.getElementById(formId).addEventListener("submit", function (event) {
+      event.preventDefault();
+      var form = event.currentTarget;
+      var data = new FormData(form);
+      api(path, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(build(data))
+      }).then(function () {
+        form.reset(); toast(successMessage); return load();
+      }).catch(function (error) { toast(error.message); });
+    });
+  }
+
+  wireForm("hireForm", "/employees", function (d) {
+    return { name: d.get("name"), role: d.get("role"), tone: d.get("tone") };
+  }, "Hired");
+
+  wireForm("knowForm", "/knowledge", function (d) {
+    return { kind: d.get("kind"), title: d.get("title"), content: d.get("content") };
+  }, "Added");
+
+  wireForm("recForm", "/recipients", function (d) {
+    return { channel: d.get("channel"), address: d.get("address") };
+  }, "Added");
+
+  // --- Navigation --------------------------------------------------------
+
+  document.getElementById("nav").addEventListener("click", function (event) {
+    var button = event.target.closest("button[data-view]");
+    if (!button) return;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-current", String(b === button));
+    });
+    ["notes", "team", "knowledge", "alerts"].forEach(function (view) {
+      document.getElementById("view-" + view).hidden = view !== button.dataset.view;
+    });
+  });
+
+  // --- Load --------------------------------------------------------------
+
+  function load() {
+    return api("/overview").then(function (data) {
+      state.data = data;
+      document.getElementById("bizName").textContent = "Business " + String(data.businessId).slice(0, 8);
+      renderAll();
+    }).catch(function (error) {
+      document.getElementById("notes").textContent = "";
+      empty(document.getElementById("notes"), "Can't load your team", error.message);
+    });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

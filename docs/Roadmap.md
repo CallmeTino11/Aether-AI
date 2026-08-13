@@ -23,7 +23,7 @@ Create the operating system for AI employees that powers millions of businesses 
 - ~~Database schema + tenant isolation~~ — Done, DEC-0007 (verified on real Postgres)
 - ~~Supabase-backed repositories + full-text retriever~~ — Done, DEC-0010 (8 integration tests on real Postgres)
 - ~~Web chat widget + turn endpoint~~ — Done, DEC-0012/0013 (29 integration tests, verified repeatable)
-- Next.js dashboard shell: hire an employee, upload knowledge, view conversations
+- ~~Dashboard: hire an employee, upload knowledge, configure alerts, review escalations~~ — Done, DEC-0018
 - Second provider adapter (OpenAI) to prove the abstraction against a real second vendor
 
 ## Later

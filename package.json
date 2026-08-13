@@ -9,7 +9,7 @@
     "build": "tsc",
     "test": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.test.js",
     "validate": "python3 scripts/validate_repo.py && python3 scripts/validate_decisions.py",
-    "test:integration": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.integration.test.js"
+    "test:integration": "tsc -p tsconfig.json --outDir dist && node --test --test-concurrency=1 dist/__tests__/*.integration.test.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
