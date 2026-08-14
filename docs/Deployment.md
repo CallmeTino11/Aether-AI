@@ -2,6 +2,16 @@
 
 Everything needed to take this from repository to running service. Nothing here has been executed — the code is deploy-ready and tested, but no live deployment exists yet.
 
+## The short version
+
+```bash
+bash scripts/setup.sh
+```
+
+That script does everything that can be automated: installs dependencies, runs the tests, applies all migrations, **verifies tenant isolation is actually enforced before you put real data in**, creates your first business, pushes configuration to Vercel, and deploys. It stops with an exact instruction whenever it needs something only a person can do — creating an account, entering a card, accepting terms. It is safe to re-run; each step checks whether it is already done.
+
+The rest of this document explains what the script is doing and why, and is worth reading if a step fails.
+
 ## What you need
 
 | Service | Why | Cost to start |

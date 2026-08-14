@@ -40,6 +40,10 @@ This repository is the **single source of truth** for company knowledge, enginee
 
 ## Running it
 
+To deploy, run `bash scripts/setup.sh` — it automates everything scriptable and tells you exactly what to paste when it needs an account or a key. See [`docs/Deployment.md`](docs/Deployment.md).
+
+To work on it locally:
+
 ```bash
 npm ci
 cp .env.example .env        # fill in DATABASE_URL, ANTHROPIC_API_KEY, etc.
