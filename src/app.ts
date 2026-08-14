@@ -30,6 +30,7 @@ import { PgNotificationOutboxRepository } from "./infrastructure/postgres/pg-not
 import { PgRateLimiter } from "./infrastructure/postgres/pg-rate-limiter.js";
 import { ResendEmailSender } from "./infrastructure/notifications/resend-sender.js";
 import { TwilioSmsSender } from "./infrastructure/notifications/twilio-sender.js";
+import { TelegramSender } from "./infrastructure/notifications/telegram-sender.js";
 import { ConsoleNotificationSender } from "./infrastructure/notifications/console-sender.js";
 import { SupabaseTokenVerifier } from "./infrastructure/auth/supabase-jwt.js";
 import { createWidgetHandler } from "./http/widget-handler.js";
@@ -50,6 +51,7 @@ export interface AppConfig {
   readonly twilioAccountSid?: string;
   readonly twilioAuthToken?: string;
   readonly twilioFrom?: string;
+  readonly telegramBotToken?: string;
   readonly cronSecret: string;
   readonly widgetAllowedOrigins: readonly string[];
   readonly dashboardBaseUrl?: string;
@@ -80,6 +82,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ...(env["TWILIO_ACCOUNT_SID"] ? { twilioAccountSid: env["TWILIO_ACCOUNT_SID"] } : {}),
     ...(env["TWILIO_AUTH_TOKEN"] ? { twilioAuthToken: env["TWILIO_AUTH_TOKEN"] } : {}),
     ...(env["TWILIO_FROM"] ? { twilioFrom: env["TWILIO_FROM"] } : {}),
+    ...(env["TELEGRAM_BOT_TOKEN"] ? { telegramBotToken: env["TELEGRAM_BOT_TOKEN"] } : {}),
     cronSecret: required("CRON_SECRET", env["CRON_SECRET"]),
     widgetAllowedOrigins: (env["WIDGET_ALLOWED_ORIGINS"] ?? "")
       .split(",")
@@ -98,14 +101,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (!config.resendApiKey || !config.notificationFrom) {
       throw new Error(
         "RESEND_API_KEY and NOTIFICATION_FROM are required in production: without them escalation alerts queue but never reach anyone.",
-      );
-    }
-    if (!config.twilioAccountSid || !config.twilioAuthToken || !config.twilioFrom) {
-      // The dashboard offers SMS recipients. Shipping without a sender would
-      // let an owner configure a channel that fails every alert — the interface
-      // promising what the system cannot do (DEC-0017).
-      throw new Error(
-        "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM are required in production: the dashboard offers SMS alerts and they would fail without a sender.",
       );
     }
     if (config.widgetAllowedOrigins.length === 0) {
@@ -176,6 +171,15 @@ export function createApp(config: AppConfig): App {
   } else {
     senders.push(new ConsoleNotificationSender({ channel: "email" }));
   }
+  // Telegram is free and needs only a bot token, so it is the recommended
+  // second channel: it gives the phone-notification property SMS had at no
+  // per-message cost (DEC-0025).
+  if (config.telegramBotToken) {
+    senders.push(new TelegramSender({ botToken: config.telegramBotToken }));
+  }
+  // SMS stays available for businesses that want it, but is no longer required:
+  // charging a small business per alert to learn a customer is waiting is a
+  // cost with a free alternative.
   if (config.twilioAccountSid && config.twilioAuthToken && config.twilioFrom) {
     senders.push(
       new TwilioSmsSender({
@@ -184,15 +188,24 @@ export function createApp(config: AppConfig): App {
         from: config.twilioFrom,
       }),
     );
-  } else if (!config.isProduction) {
-    // Development gets a console SMS sender so the channel is exercisable
-    // without a Twilio account. In production its absence is a hard error
-    // below, because the dashboard offers SMS and an unimplemented channel
-    // would fail every alert sent to it.
-    senders.push(new ConsoleNotificationSender({ channel: "sms" }));
+  }
+  if (!config.isProduction) {
+    // Development gets console senders for every channel with no real provider,
+    // so any channel is exercisable locally without an account. These refuse to
+    // run in production (DEC-0017).
+    const configured = new Set(senders.map((sender) => sender.channel));
+    for (const channel of ["sms", "telegram"] as const) {
+      if (!configured.has(channel)) {
+        senders.push(new ConsoleNotificationSender({ channel }));
+      }
+    }
   }
 
   const notificationWorker = new NotificationWorker({ outbox, senders });
+
+  // Derived from the senders that were actually constructed, so the dashboard
+  // can never offer a channel this deployment cannot deliver.
+  const availableChannels = senders.map((sender) => sender.channel);
 
   return {
     handleWidget: createWidgetHandler(widgetService, {
@@ -211,6 +224,7 @@ export function createApp(config: AppConfig): App {
         );
         return (rows[0]?.business_id as BusinessId) ?? null;
       },
+      availableChannels,
     }),
 
     handleScheduledJobs: createScheduledJobsHandler({

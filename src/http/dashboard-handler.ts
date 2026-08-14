@@ -14,6 +14,7 @@
 import { DashboardError, DashboardService } from "../application/dashboard-service.js";
 import type { BusinessId } from "../domain/employee.js";
 import type { SqlExecutor } from "../infrastructure/postgres/sql-executor.js";
+import type { NotificationChannel } from "../application/notifications.js";
 
 const STATUS_BY_CODE: Readonly<Record<DashboardError["code"], number>> = {
   invalid_input: 400,
@@ -28,6 +29,8 @@ export interface DashboardHttpDeps {
   readonly executorFor: (userId: string) => SqlExecutor;
   /** Resolves which business the user is acting for. */
   readonly resolveBusiness: (userId: string) => Promise<BusinessId | null>;
+  /** Channels with a sender actually wired up; the UI offers only these. */
+  readonly availableChannels: readonly NotificationChannel[];
 }
 
 function json(body: unknown, status = 200): Response {
@@ -53,7 +56,7 @@ export function createDashboardHandler(
       return json({ error: "no_business", message: "You are not a member of any business." }, 403);
     }
 
-    const dashboard = new DashboardService(deps.executorFor(userId));
+    const dashboard = new DashboardService(deps.executorFor(userId), deps.availableChannels);
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "").replace(/^.*\/api\/dashboard/, "");
     const method = request.method;
@@ -69,7 +72,15 @@ export function createDashboardHandler(
           dashboard.listEscalations(20),
           dashboard.knowledgeGaps(10),
         ]);
-        return json({ businessId, employees, knowledge, recipients, escalations, gaps });
+        return json({
+          businessId,
+          employees,
+          knowledge,
+          recipients,
+          escalations,
+          gaps,
+          availableChannels: dashboard.listAvailableChannels(),
+        });
       }
 
       if (method === "POST" && path === "/employees") {

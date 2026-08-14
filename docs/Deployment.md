@@ -10,9 +10,20 @@ Everything needed to take this from repository to running service. Nothing here 
 | **Vercel** | Hosting + cron | Free tier (Hobby has cron limits — see note) |
 | **Anthropic** or **OpenAI** | The employee's reasoning | Pay per use |
 | **Resend** | Escalation emails | Free tier (100/day) |
-| **Twilio** | Escalation SMS | Pay per message |
+| **Telegram** *(optional)* | Instant phone alerts | Free |
+| **Twilio** *(optional)* | SMS alerts | Pay per message |
 
-Twilio is only required if you want SMS alerts, but the app **refuses to start in production without it** because the dashboard offers SMS as an option (DEC-0017: the interface must not promise what the system cannot do). If you don't want SMS, remove the option from `public/dashboard.html` first.
+Only Resend is required. The dashboard offers whichever channels have a sender configured, so leaving Twilio or Telegram blank simply hides that option rather than breaking anything.
+
+### Which alert channel to use
+
+**Email plus Telegram** is the recommended combination, and costs nothing.
+
+Telegram gives what SMS gave — the owner's phone actually buzzes — with no per-message charge, no business verification and no template approval. Create a bot with `@BotFather`, set `TELEGRAM_BOT_TOKEN`, then message the bot once to get your numeric chat id and paste that into the dashboard.
+
+**On WhatsApp:** it is the obvious choice for a South African small business, and it is the wrong one *for alerts*. WhatsApp's free window only opens when a customer messages you first and lasts 24 hours from their last message. An escalation alert to the owner is business-initiated, so no window is open: it bills as a utility template on every send, with no free tier, and requires Meta business verification plus pre-approved templates. From 1 October 2026 even utility templates inside the service window lose their free status.
+
+Where WhatsApp *does* make sense is the opposite direction — as a channel for **customers** to reach the business, since inbound messages open a free window and replies inside it cost nothing. That is a future integration with completely different economics, and is on the roadmap rather than built.
 
 ---
 

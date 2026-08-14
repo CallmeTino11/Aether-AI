@@ -73,6 +73,7 @@ before(async () => {
       );
       return (rows[0]?.business_id as BusinessId) ?? null;
     },
+    availableChannels: ["email", "telegram"],
   });
 
   server = createServer((req, res) => {

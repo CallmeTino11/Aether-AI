@@ -14,7 +14,7 @@
 import type { BusinessId, ConversationId } from "../domain/employee.js";
 
 export type NotificationKind = "escalation";
-export type NotificationChannel = "email" | "sms";
+export type NotificationChannel = "email" | "sms" | "telegram" | "whatsapp";
 
 export interface NotificationRecipient {
   readonly channel: NotificationChannel;

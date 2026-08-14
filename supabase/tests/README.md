@@ -16,6 +16,7 @@ These scripts verify the migrations' security and integrity properties against a
 | `0002_widget_session_security.sql` | Widget session token hashes, `last_activity_at`, atomic rate-limit counters |
 | `0003_notification_outbox.sql` | Escalation notification outbox, recipients, lease-based `claim_due_notifications()` |
 | `0004_authenticated_role.sql` | `app_user` role and grants so dashboard queries run under RLS rather than as the owner |
+| `0005_notification_channels.sql` | Adds `telegram` and `whatsapp` notification channels |
 
 ## Running locally
 

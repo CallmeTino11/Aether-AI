@@ -38,8 +38,11 @@ let service: PgSqlExecutor; // service role: setup and teardown only
 let pool: Pool;
 
 /** A dashboard scoped to one logged-in user, exactly as the app would build it. */
-function dashboardFor(userId: string): DashboardService {
-  return new DashboardService(new AuthenticatedSqlExecutor(pool, userId));
+function dashboardFor(
+  userId: string,
+  channels: readonly ("email" | "sms" | "telegram" | "whatsapp")[] = ["email", "telegram"],
+): DashboardService {
+  return new DashboardService(new AuthenticatedSqlExecutor(pool, userId), channels);
 }
 
 before(async () => {
@@ -308,6 +311,30 @@ test("recipients can be added, listed and removed", dbOnly, async () => {
     () => dashboard.addRecipient({ businessId: CLINIC, channel: "email", address: "not-an-email" }),
     (error: unknown) => error instanceof DashboardError && error.code === "invalid_input",
   );
+});
+
+test("a channel with no sender configured cannot be added", dbOnly, async () => {
+  // Email-only deployment: offering SMS would let an owner configure a channel
+  // whose alerts fail every time (DEC-0017/DEC-0025).
+  const emailOnly = dashboardFor(CLINIC_OWNER, ["email"]);
+  await assert.rejects(
+    () => emailOnly.addRecipient({ businessId: CLINIC, channel: "sms", address: "+27821234567" }),
+    (error: unknown) => error instanceof DashboardError && error.code === "invalid_input",
+  );
+  assert.deepEqual([...emailOnly.listAvailableChannels()], ["email"]);
+});
+
+test("telegram recipients need a numeric chat id", dbOnly, async () => {
+  const dashboard = dashboardFor(CLINIC_OWNER);
+  await assert.rejects(
+    () => dashboard.addRecipient({ businessId: CLINIC, channel: "telegram", address: "@someone" }),
+    (error: unknown) => error instanceof DashboardError && error.code === "invalid_input",
+  );
+
+  await dashboard.addRecipient({ businessId: CLINIC, channel: "telegram", address: "987654321" });
+  const recipients = await dashboard.listRecipients();
+  assert.ok(recipients.some((r) => r.channel === "telegram" && r.address === "987654321"));
+  await dashboard.removeRecipient("telegram", "987654321");
 });
 
 test("escalations surface the question and whether the team was actually alerted", dbOnly, async () => {

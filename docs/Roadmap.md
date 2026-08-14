@@ -37,6 +37,8 @@ Create the operating system for AI employees that powers millions of businesses 
 
 ## Later
 
+- **WhatsApp as a customer channel** (not an alert channel). Inbound customer messages open a free 24-hour window, so replies inside it cost nothing — the economics are the reverse of using it for owner alerts (DEC-0025). This is the integration worth building for a market where customers already message businesses on WhatsApp.
+
 - ~~Real email provider~~ — Done (Resend adapter; swapping providers is one class)
 - ~~Scheduled worker invocation~~ — Done, DEC-0021 (authenticated cron endpoint + `vercel.json`)
 - ~~SMS delivery (Twilio)~~ — Done, DEC-0022

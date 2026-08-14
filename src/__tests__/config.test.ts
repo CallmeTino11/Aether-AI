@@ -57,14 +57,15 @@ test("the dashboard cannot start with no way to verify tokens", () => {
   );
 });
 
-/** Everything production requires beyond the shared base. */
+/**
+ * Everything production requires beyond the shared base. Email only: SMS and
+ * Telegram are optional, and the dashboard offers whichever channels actually
+ * have senders (DEC-0025) rather than config being forced to match the UI.
+ */
 const productionExtras: NodeJS.ProcessEnv = {
   NODE_ENV: "production",
   RESEND_API_KEY: "re_test",
   NOTIFICATION_FROM: "Aether <a@b.co>",
-  TWILIO_ACCOUNT_SID: "ACtest",
-  TWILIO_AUTH_TOKEN: "token",
-  TWILIO_FROM: "+27871234567",
 };
 
 test("a complete production configuration loads", () => {
@@ -78,15 +79,24 @@ test("production refuses to start without a real email provider", () => {
   assert.throws(() => loadConfig(env), /never reach anyone/);
 });
 
-test("production refuses to start without an sms sender", () => {
-  // The dashboard offers SMS recipients. Shipping without a sender would let an
-  // owner configure a channel that fails every alert — the interface promising
-  // what the system cannot do (DEC-0017).
-  for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM"]) {
-    const env: NodeJS.ProcessEnv = { ...base, ...productionExtras };
-    delete env[key];
-    assert.throws(() => loadConfig(env), /SMS alerts/, `missing ${key} should be caught`);
-  }
+test("production starts without SMS or Telegram credentials", () => {
+  // Neither is required. Charging a small business per alert, or forcing a
+  // Telegram bot on them, are both worse than email-only working out of the box.
+  // The dashboard simply will not offer channels with no sender behind them.
+  assert.doesNotThrow(() => loadConfig({ ...base, ...productionExtras }));
+});
+
+test("optional channel credentials are read when present", () => {
+  const config = loadConfig({
+    ...base,
+    ...productionExtras,
+    TELEGRAM_BOT_TOKEN: "123:abc",
+    TWILIO_ACCOUNT_SID: "ACtest",
+    TWILIO_AUTH_TOKEN: "token",
+    TWILIO_FROM: "+27871234567",
+  });
+  assert.equal(config.telegramBotToken, "123:abc");
+  assert.equal(config.twilioFrom, "+27871234567");
 });
 
 test("production refuses an empty widget origin allowlist", () => {
@@ -94,12 +104,11 @@ test("production refuses an empty widget origin allowlist", () => {
   assert.throws(() => loadConfig(env), /WIDGET_ALLOWED_ORIGINS/);
 });
 
-test("development runs without an email or sms provider", () => {
-  // Local work should not require Resend or Twilio accounts; console senders
-  // cover both, and they refuse to run in production (DEC-0017).
+test("development runs with no delivery providers at all", () => {
+  // Local work should not require any provider account; console senders cover
+  // every channel and refuse to run in production (DEC-0017).
   const env: NodeJS.ProcessEnv = { ...base };
   delete env["RESEND_API_KEY"];
-  delete env["TWILIO_ACCOUNT_SID"];
   assert.doesNotThrow(() => loadConfig(env));
 });
 

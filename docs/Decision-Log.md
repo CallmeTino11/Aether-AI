@@ -4,6 +4,18 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 011: Alert Channels Reconsidered
+
+- **Changes made:** Replaced SMS with Telegram as the recommended alert channel and removed all mandatory providers beyond email. The dashboard now offers only channels with a sender actually configured.
+- **Why:** the founder asked for the free, effective option and raised WhatsApp. Checking current pricing changed the answer — an escalation is business-initiated, so it falls outside WhatsApp's free service window and bills per template with no free tier, plus Meta verification and template approval. Telegram is free, needs neither, and still buzzes the owner's phone.
+- **Structural fix:** production config used to be forced to match a hardcoded UI, so adding a channel to the interface made deployments without that provider fail to boot. The dependency is now the right way round.
+- **Documents modified:** Decision-Register (DEC-0022 marked partially superseded), Architecture, Roadmap, Deployment, `.env.example`, dashboard UI, config and dashboard tests
+- **Documents created:** `supabase/migrations/0005_notification_channels.sql`, `src/infrastructure/notifications/telegram-sender.ts`, `src/__tests__/telegram-delivery.test.ts`, session 011 record
+- **Decisions created:** DEC-0025
+- **Decisions referenced:** DEC-0015, DEC-0017, DEC-0020, DEC-0022
+- **Implementation changes:** 70 unit + 67 integration tests passing, integration verified twice
+- **Outstanding issues:** See `sessions/2026-08-11-session-011.md`
+
 ## 2026-08-11 — Session 010: SMS, Second Provider, Deployment Surface
 
 - **Changes made:** Implemented the SMS channel the dashboard was already offering; added an OpenAI adapter and a substitutability suite; built the Vercel deployment surface and a deployment guide.

@@ -71,6 +71,12 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `api/{widget,dashboard,cron}.ts`, `vercel.json`, `tsconfig.build.json` — deployment surface (DEC-0024).
 - `docs/Deployment.md` — full path from repository to running service.
 
+**Session 011 additions — alert channels:**
+
+- `supabase/migrations/0005_notification_channels.sql` — adds `telegram` and `whatsapp` channels.
+- `src/infrastructure/notifications/telegram-sender.ts` — free push-notification alerts (DEC-0025).
+- Channel availability is derived from the senders actually constructed and passed to the dashboard, so the UI can only offer what the deployment can deliver.
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -81,6 +87,7 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 | 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
 | 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
 | 8 provider substitutability tests | The same engine on Anthropic and OpenAI produces identical replies, identical escalation behaviour, and identical grounding safety — only the audit's provider id differs |
+| 6 Telegram tests | Chat id validated before spending a request; no parse mode, so punctuation in a customer question cannot fail an alert; blocked-bot is permanent, outages retry |
 | 10 SMS tests | Segment budget respected (cost); E.164 validated before spending a request; Twilio codes classify permanence |
 | 12 JWT tests | Forged tokens rejected: `alg:none`, wrong secret, tampered payload, wrong issuer/audience, non-uuid subject, and a live algorithm-confusion attack against a JWKS endpoint |
 | 10 delivery/cron tests | Permanent vs retryable failures; cron rejects unauthenticated, wrong, and near-miss secrets without draining the queue |
@@ -164,5 +171,6 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0022 | SMS implemented with segment-budgeted rendering |
 | DEC-0023 | Second AI provider implemented to prove the abstraction |
 | DEC-0024 | Deployment targets Vercel with serverless entry points |
+| DEC-0025 | Telegram is the recommended alert channel; no channel is mandatory |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

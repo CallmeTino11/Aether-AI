@@ -867,8 +867,11 @@ Completed
 ### Supersedes
 None
 
+### Superseded By
+DEC-0025, in part — the production Twilio requirement is lifted. The SMS adapter and segment-budgeted rendering remain in use.
+
 ### Related Decisions
-DEC-0015, DEC-0017, DEC-0020
+DEC-0015, DEC-0017, DEC-0020, DEC-0025
 
 ### Notes
 `DeliveryError` moved from the Resend adapter into the application layer, since both senders raise it and the worker interprets it. Twilio error codes classify permanence more precisely than HTTP status (21211 invalid number is a permanent 400; 20429 throttling is a retryable 429), but an unrecognised code on a 4xx still falls back to status — a bug caught by a test that expected the fallback and found the implementation ignoring status whenever a code was present.
@@ -948,5 +951,54 @@ DEC-0005, DEC-0020, DEC-0021
 
 ### Notes
 `widget.js` is served with a wildcard CORS header because it is public static JavaScript any customer site must be able to load; the API keeps a strict origin allowlist because it is credentialed. These protect different things and are not in conflict. Hobby-tier Vercel cron runs once daily, which is useless for escalation alerts — the documented schedule needs Pro, or any external scheduler pointed at `POST /api/cron`.
+
+---
+
+## DEC-0025 — Telegram replaces SMS as the recommended alert channel; no channel is mandatory
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Founder (Tino) — direction; Claude — implementation under DEC-0003
+
+### Decision
+Escalation alerts default to **email** (required) plus **Telegram** (recommended, free). SMS and WhatsApp remain supported but optional, and no provider beyond email is required to boot. The dashboard offers only channels that have a sender wired up in the running deployment; `addRecipient` rejects the rest.
+
+### Reason
+The founder asked for the most cost-effective option that is free and effective, raising WhatsApp. Checking current pricing changed the answer:
+
+- **WhatsApp** — an escalation alert is *business-initiated*, so it falls outside the free 24-hour customer service window and bills as a utility template on every send, with no free tier. It also needs Meta business verification and pre-approved templates. From 1 October 2026 even utility templates inside the service window lose their free status. Real cost and heavy setup for "tell the owner someone is waiting".
+- **SMS** — works, but bills per message.
+- **Telegram** — free, unlimited, no verification, no template approval, and delivers an actual push notification. A bot token takes minutes to create.
+
+Telegram restores the property that made SMS worth having — the owner's phone buzzes — at zero marginal cost. The trade-off is honest: the recipient must use Telegram, which is why email remains the required baseline.
+
+This also supersedes the approach taken in DEC-0022, where production was forced to supply Twilio credentials because the dashboard hardcoded an SMS option. That had the dependency backwards: adding a channel to the interface made every deployment without that provider fail to boot. The UI now reflects the configuration instead, which upholds DEC-0017 more directly — an owner is never shown a channel whose alerts would fail.
+
+### Impact
+- Product
+- Engineering
+- Finance (removes a per-alert cost)
+- Customer Success
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+DEC-0022
+
+Scope note: this supersedes only the production Twilio *requirement*. The SMS adapter and its segment-budgeted rendering remain in use as an optional channel.
+
+### Related Decisions
+DEC-0015, DEC-0017, DEC-0020, DEC-0022
+
+### Notes
+WhatsApp remains the right channel for reaching *customers* rather than owners — inbound customer messages open a free service window, so replies inside it cost nothing. That is a future customer-channel integration, not an alerting one, and the economics are opposite. Telegram messages set no parse mode, so an unbalanced asterisk or underscore in a customer's question cannot fail an alert.
 
 <!-- Append new decisions below this line, in ascending numeric order -->

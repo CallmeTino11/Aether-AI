@@ -117,6 +117,7 @@ export {
 } from "./infrastructure/auth/supabase-jwt.js";
 export { ResendEmailSender, type ResendConfig } from "./infrastructure/notifications/resend-sender.js";
 export { TwilioSmsSender, type TwilioConfig } from "./infrastructure/notifications/twilio-sender.js";
+export { TelegramSender, type TelegramConfig } from "./infrastructure/notifications/telegram-sender.js";
 export {
   createScheduledJobsHandler,
   type ScheduledJobsDeps,

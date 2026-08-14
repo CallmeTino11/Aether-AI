@@ -264,9 +264,10 @@
     <section id="view-alerts" hidden>
       <h1>Who gets told</h1>
       <p class="lede">When your team can't answer something, these people hear about it.</p>
+      <p class="why" id="channelHint"></p>
       <form class="inline" id="recForm">
         <label>Channel
-          <select name="channel"><option value="email">Email</option><option value="sms">SMS</option></select>
+          <select name="channel" id="channelSelect"></select>
         </label>
         <label>Address<input name="address" placeholder="team@yourbusiness.co.za" required /></label>
         <button class="action" type="submit">Add</button>
@@ -444,6 +445,39 @@
     });
   }
 
+  var CHANNEL_LABELS = {
+    email: "Email",
+    telegram: "Telegram",
+    sms: "SMS",
+    whatsapp: "WhatsApp"
+  };
+  var CHANNEL_HINTS = {
+    telegram: "Telegram needs a numeric chat id \u2014 message the bot and it replies with yours. Free and instant.",
+    sms: "SMS is charged per message by your provider.",
+    whatsapp: "WhatsApp alerts are billed per message and need an approved template."
+  };
+
+  // Options come from the server, never hardcoded: offering a channel this
+  // deployment cannot deliver would promise something the system can't do.
+  function renderChannelOptions() {
+    var select = document.getElementById("channelSelect");
+    var available = state.data.availableChannels || ["email"];
+    select.textContent = "";
+    available.forEach(function (channel) {
+      var option = document.createElement("option");
+      option.value = channel;
+      option.textContent = CHANNEL_LABELS[channel] || channel;
+      select.appendChild(option);
+    });
+    updateChannelHint();
+    select.onchange = updateChannelHint;
+  }
+
+  function updateChannelHint() {
+    var select = document.getElementById("channelSelect");
+    document.getElementById("channelHint").textContent = CHANNEL_HINTS[select.value] || "";
+  }
+
   function renderRecipients() {
     var host = document.getElementById("recipients");
     host.textContent = "";
@@ -474,7 +508,8 @@
   }
 
   function renderAll() {
-    renderNotes(); renderGaps(); renderRoster(); renderKnowledge(); renderRecipients();
+    renderNotes(); renderGaps(); renderRoster(); renderKnowledge();
+    renderChannelOptions(); renderRecipients();
   }
 
   // --- Forms -------------------------------------------------------------

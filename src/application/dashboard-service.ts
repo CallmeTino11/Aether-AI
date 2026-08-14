@@ -49,7 +49,24 @@ export interface KnowledgeGap {
 }
 
 export class DashboardService {
-  constructor(private readonly sql: SqlExecutor) {}
+  /**
+   * @param availableChannels Channels that actually have a sender wired up.
+   *   The dashboard offers only these, and `addRecipient` rejects anything
+   *   else. This inverts an earlier mistake: production config used to be
+   *   forced to match a hardcoded UI, which meant adding a channel to the
+   *   interface made every deployment without that provider fail to boot.
+   *   Letting the UI reflect the configuration is the honest direction, and
+   *   still upholds DEC-0017 — an owner is never offered a channel whose
+   *   alerts would silently fail.
+   */
+  constructor(
+    private readonly sql: SqlExecutor,
+    private readonly availableChannels: readonly NotificationChannel[] = ["email"],
+  ) {}
+
+  listAvailableChannels(): readonly NotificationChannel[] {
+    return this.availableChannels;
+  }
 
   // -------------------------------------------------------------------------
   // Employees
@@ -212,6 +229,12 @@ export class DashboardService {
     readonly channel: NotificationChannel;
     readonly address: string;
   }): Promise<void> {
+    if (!this.availableChannels.includes(input.channel)) {
+      throw new DashboardError(
+        "invalid_input",
+        `${input.channel} alerts are not configured for this deployment.`,
+      );
+    }
     const address = input.address.trim();
     // Shape check only. Deliverability is proven by actually delivering, not by
     // a regex — an over-strict pattern rejects valid addresses and still admits
@@ -219,8 +242,17 @@ export class DashboardService {
     if (input.channel === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
       throw new DashboardError("invalid_input", "That does not look like an email address.");
     }
-    if (input.channel === "sms" && !/^\+?[0-9\s-]{7,20}$/.test(address)) {
+    if (
+      (input.channel === "sms" || input.channel === "whatsapp") &&
+      !/^\+?[0-9\s-]{7,20}$/.test(address)
+    ) {
       throw new DashboardError("invalid_input", "That does not look like a phone number.");
+    }
+    if (input.channel === "telegram" && !/^-?\d+$/.test(address)) {
+      throw new DashboardError(
+        "invalid_input",
+        "Telegram needs a numeric chat id. Message the bot and it will reply with yours.",
+      );
     }
     await this.sql.query(
       `insert into notification_recipients (business_id, channel, address)
