@@ -1,9 +1,26 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "crons": [
     {
       "path": "/api/cron",
-      "schedule": "* * * * *"
+      "schedule": "*/2 * * * *"
+    }
+  ],
+  "rewrites": [
+    { "source": "/widget/conversations", "destination": "/api/widget" },
+    { "source": "/widget/conversations/(.*)", "destination": "/api/widget" },
+    { "source": "/api/dashboard/(.*)", "destination": "/api/dashboard" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
+  ],
+  "headers": [
+    {
+      "source": "/widget.js",
+      "headers": [
+        { "key": "cache-control", "value": "public, max-age=300, must-revalidate" },
+        { "key": "access-control-allow-origin", "value": "*" }
+      ]
     }
   ]
 }

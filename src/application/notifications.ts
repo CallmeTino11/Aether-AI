@@ -30,6 +30,13 @@ export interface NotificationPayload {
   readonly recipients: readonly NotificationRecipient[];
   readonly subject: string;
   readonly body: string;
+  /**
+   * Short form for SMS. Rendered separately rather than truncating `body` at
+   * send time: SMS bills per 160-character segment, so mailing a full
+   * escalation body would cost several messages per alert and arrive as a wall
+   * of text on a phone. Senders that have no length pressure ignore this.
+   */
+  readonly smsBody?: string;
   /** Deep link for the team to open the conversation. */
   readonly conversationUrl?: string;
 }
@@ -71,6 +78,25 @@ export interface NotificationSender {
 }
 
 /**
+ * Thrown by any delivery sender. `permanent` tells the worker whether retrying
+ * could ever help: a rejected phone number or malformed request fails
+ * identically every time, while an outage or rate limit will not.
+ *
+ * Lives here rather than beside a provider because both the email and SMS
+ * adapters raise it and the worker interprets it — putting it in one provider's
+ * file would make the other import a peer it has nothing to do with.
+ */
+export class DeliveryError extends Error {
+  constructor(
+    message: string,
+    readonly permanent: boolean,
+  ) {
+    super(message);
+    this.name = "DeliveryError";
+  }
+}
+
+/**
  * A sender signals an unretryable failure by throwing an error with
  * `permanent: true` — a rejected address or malformed request will fail
  * identically on every attempt, so burning six retries only delays telling the
@@ -107,6 +133,22 @@ export function backoffDelayMs(attempts: number): number {
   return Math.min(base * 2 ** (capped - 1), 30 * 60_000);
 }
 
+/**
+ * One SMS segment is 160 GSM-7 characters. Staying inside a single segment
+ * keeps the per-alert cost predictable; the full detail lives in the email and
+ * the dashboard, so the SMS only needs to say enough to prompt action.
+ */
+const SMS_SEGMENT_LIMIT = 160;
+
+function truncateForSms(text: string, budget: number): string {
+  if (text.length <= budget) return text;
+  // Cut at a word boundary where possible so the message does not end
+  // mid-word, which reads as a broken send rather than a summary.
+  const clipped = text.slice(0, budget - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${(lastSpace > budget * 0.6 ? clipped.slice(0, lastSpace) : clipped).trimEnd()}\u2026`;
+}
+
 /** Renders the escalation alert. Kept pure so its wording is easy to test and review. */
 export function renderEscalationNotification(input: {
   readonly businessName: string;
@@ -126,15 +168,23 @@ export function renderEscalationNotification(input: {
     "",
     input.conversationUrl ? `Open the conversation: ${input.conversationUrl}` : "",
     "",
-    `— ${input.businessName} via Aether AI`,
+    `\u2014 ${input.businessName} via Aether AI`,
   ]
     .filter((line, index, all) => !(line === "" && all[index - 1] === ""))
     .join("\n");
+
+  // The URL is worth more than extra words on a phone, so it gets its budget
+  // first and the question fills whatever remains.
+  const smsPrefix = `${input.employeeName}: `;
+  const smsSuffix = input.conversationUrl ? ` ${input.conversationUrl}` : "";
+  const questionBudget = SMS_SEGMENT_LIMIT - smsPrefix.length - smsSuffix.length;
+  const smsBody = `${smsPrefix}${truncateForSms(input.customerMessage, Math.max(questionBudget, 20))}${smsSuffix}`;
 
   return {
     recipients: input.recipients,
     subject,
     body,
+    smsBody,
     ...(input.conversationUrl !== undefined ? { conversationUrl: input.conversationUrl } : {}),
   };
 }

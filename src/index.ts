@@ -74,6 +74,8 @@ export { createWidgetHandler, type WidgetHttpOptions } from "./http/widget-handl
 // Escalation notifications (session 007)
 export {
   backoffDelayMs,
+  DeliveryError,
+  isPermanentDeliveryFailure,
   MAX_DELIVERY_ATTEMPTS,
   renderEscalationNotification,
   type EnqueueNotification,
@@ -113,14 +115,14 @@ export {
   type SupabaseAuthConfig,
   type VerifiedUser,
 } from "./infrastructure/auth/supabase-jwt.js";
-export {
-  ResendEmailSender,
-  EmailDeliveryError,
-  type ResendConfig,
-} from "./infrastructure/notifications/resend-sender.js";
+export { ResendEmailSender, type ResendConfig } from "./infrastructure/notifications/resend-sender.js";
+export { TwilioSmsSender, type TwilioConfig } from "./infrastructure/notifications/twilio-sender.js";
 export {
   createScheduledJobsHandler,
   type ScheduledJobsDeps,
   type ScheduledRunSummary,
 } from "./http/scheduled-jobs-handler.js";
 export { createApp, loadConfig, type App, type AppConfig } from "./app.js";
+
+// Second AI provider and SMS delivery (session 010)
+export { OpenAiProvider, type OpenAiConfig } from "./ai/providers/openai.js";

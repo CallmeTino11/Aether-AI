@@ -13,6 +13,7 @@ This repository is the **single source of truth** for company knowledge, enginee
 | [`docs/Decision-Register.md`](docs/Decision-Register.md) | Every approved company decision, permanent record |
 | [`docs/Decision-Log.md`](docs/Decision-Log.md) | Session-by-session log of what changed |
 | [`docs/Roadmap.md`](docs/Roadmap.md) | Vision → near-term → backlog |
+| [`docs/Deployment.md`](docs/Deployment.md) | How to take this live, step by step |
 | [`docs/Folder-Structure.md`](docs/Folder-Structure.md) | What lives where and why |
 | [`docs/Coding-Standards.md`](docs/Coding-Standards.md) | Engineering conventions |
 | [`docs/API-Standards.md`](docs/API-Standards.md) | API design conventions |

@@ -57,32 +57,49 @@ test("the dashboard cannot start with no way to verify tokens", () => {
   );
 });
 
+/** Everything production requires beyond the shared base. */
+const productionExtras: NodeJS.ProcessEnv = {
+  NODE_ENV: "production",
+  RESEND_API_KEY: "re_test",
+  NOTIFICATION_FROM: "Aether <a@b.co>",
+  TWILIO_ACCOUNT_SID: "ACtest",
+  TWILIO_AUTH_TOKEN: "token",
+  TWILIO_FROM: "+27871234567",
+};
+
+test("a complete production configuration loads", () => {
+  assert.doesNotThrow(() => loadConfig({ ...base, ...productionExtras }));
+});
+
 test("production refuses to start without a real email provider", () => {
-  const env: NodeJS.ProcessEnv = { ...base, NODE_ENV: "production" };
+  const env: NodeJS.ProcessEnv = { ...base, ...productionExtras };
   delete env["RESEND_API_KEY"];
   // Without this, alerts queue forever and the business never learns.
   assert.throws(() => loadConfig(env), /never reach anyone/);
+});
 
-  assert.doesNotThrow(() =>
-    loadConfig({ ...env, RESEND_API_KEY: "re_test", NOTIFICATION_FROM: "Aether <a@b.co>" }),
-  );
+test("production refuses to start without an sms sender", () => {
+  // The dashboard offers SMS recipients. Shipping without a sender would let an
+  // owner configure a channel that fails every alert — the interface promising
+  // what the system cannot do (DEC-0017).
+  for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM"]) {
+    const env: NodeJS.ProcessEnv = { ...base, ...productionExtras };
+    delete env[key];
+    assert.throws(() => loadConfig(env), /SMS alerts/, `missing ${key} should be caught`);
+  }
 });
 
 test("production refuses an empty widget origin allowlist", () => {
-  const env = {
-    ...base,
-    NODE_ENV: "production",
-    RESEND_API_KEY: "re_test",
-    NOTIFICATION_FROM: "Aether <a@b.co>",
-    WIDGET_ALLOWED_ORIGINS: "",
-  };
+  const env = { ...base, ...productionExtras, WIDGET_ALLOWED_ORIGINS: "" };
   assert.throws(() => loadConfig(env), /WIDGET_ALLOWED_ORIGINS/);
 });
 
-test("development runs without an email provider", () => {
-  // Local work should not require a Resend account; the console sender covers it.
-  const env = { ...base };
+test("development runs without an email or sms provider", () => {
+  // Local work should not require Resend or Twilio accounts; console senders
+  // cover both, and they refuse to run in production (DEC-0017).
+  const env: NodeJS.ProcessEnv = { ...base };
   delete env["RESEND_API_KEY"];
+  delete env["TWILIO_ACCOUNT_SID"];
   assert.doesNotThrow(() => loadConfig(env));
 });
 

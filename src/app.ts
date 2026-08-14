@@ -29,6 +29,7 @@ import {
 import { PgNotificationOutboxRepository } from "./infrastructure/postgres/pg-notification-outbox.js";
 import { PgRateLimiter } from "./infrastructure/postgres/pg-rate-limiter.js";
 import { ResendEmailSender } from "./infrastructure/notifications/resend-sender.js";
+import { TwilioSmsSender } from "./infrastructure/notifications/twilio-sender.js";
 import { ConsoleNotificationSender } from "./infrastructure/notifications/console-sender.js";
 import { SupabaseTokenVerifier } from "./infrastructure/auth/supabase-jwt.js";
 import { createWidgetHandler } from "./http/widget-handler.js";
@@ -46,6 +47,9 @@ export interface AppConfig {
   readonly supabaseIssuer?: string;
   readonly resendApiKey?: string;
   readonly notificationFrom?: string;
+  readonly twilioAccountSid?: string;
+  readonly twilioAuthToken?: string;
+  readonly twilioFrom?: string;
   readonly cronSecret: string;
   readonly widgetAllowedOrigins: readonly string[];
   readonly dashboardBaseUrl?: string;
@@ -73,6 +77,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ...(env["SUPABASE_ISSUER"] ? { supabaseIssuer: env["SUPABASE_ISSUER"] } : {}),
     ...(env["RESEND_API_KEY"] ? { resendApiKey: env["RESEND_API_KEY"] } : {}),
     ...(env["NOTIFICATION_FROM"] ? { notificationFrom: env["NOTIFICATION_FROM"] } : {}),
+    ...(env["TWILIO_ACCOUNT_SID"] ? { twilioAccountSid: env["TWILIO_ACCOUNT_SID"] } : {}),
+    ...(env["TWILIO_AUTH_TOKEN"] ? { twilioAuthToken: env["TWILIO_AUTH_TOKEN"] } : {}),
+    ...(env["TWILIO_FROM"] ? { twilioFrom: env["TWILIO_FROM"] } : {}),
     cronSecret: required("CRON_SECRET", env["CRON_SECRET"]),
     widgetAllowedOrigins: (env["WIDGET_ALLOWED_ORIGINS"] ?? "")
       .split(",")
@@ -91,6 +98,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     if (!config.resendApiKey || !config.notificationFrom) {
       throw new Error(
         "RESEND_API_KEY and NOTIFICATION_FROM are required in production: without them escalation alerts queue but never reach anyone.",
+      );
+    }
+    if (!config.twilioAccountSid || !config.twilioAuthToken || !config.twilioFrom) {
+      // The dashboard offers SMS recipients. Shipping without a sender would
+      // let an owner configure a channel that fails every alert — the interface
+      // promising what the system cannot do (DEC-0017).
+      throw new Error(
+        "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM are required in production: the dashboard offers SMS alerts and they would fail without a sender.",
       );
     }
     if (config.widgetAllowedOrigins.length === 0) {
@@ -155,10 +170,27 @@ export function createApp(config: AppConfig): App {
 
   // In production the console sender throws on construction, so this choice is
   // enforced by the sender itself rather than trusted to this file.
-  const senders: NotificationSender[] =
-    config.resendApiKey && config.notificationFrom
-      ? [new ResendEmailSender({ apiKey: config.resendApiKey, from: config.notificationFrom })]
-      : [new ConsoleNotificationSender({ channel: "email" })];
+  const senders: NotificationSender[] = [];
+  if (config.resendApiKey && config.notificationFrom) {
+    senders.push(new ResendEmailSender({ apiKey: config.resendApiKey, from: config.notificationFrom }));
+  } else {
+    senders.push(new ConsoleNotificationSender({ channel: "email" }));
+  }
+  if (config.twilioAccountSid && config.twilioAuthToken && config.twilioFrom) {
+    senders.push(
+      new TwilioSmsSender({
+        accountSid: config.twilioAccountSid,
+        authToken: config.twilioAuthToken,
+        from: config.twilioFrom,
+      }),
+    );
+  } else if (!config.isProduction) {
+    // Development gets a console SMS sender so the channel is exercisable
+    // without a Twilio account. In production its absence is a hard error
+    // below, because the dashboard offers SMS and an unimplemented channel
+    // would fail every alert sent to it.
+    senders.push(new ConsoleNotificationSender({ channel: "sms" }));
+  }
 
   const notificationWorker = new NotificationWorker({ outbox, senders });
 

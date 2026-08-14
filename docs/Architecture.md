@@ -64,6 +64,13 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/app.ts` — the composition root: the only file reading environment variables, with eager validation (DEC-0020).
 - `vercel.json`, `.env.example` — deployment configuration.
 
+**Session 010 additions — closing gaps and deployment surface:**
+
+- `src/infrastructure/notifications/twilio-sender.ts` — SMS delivery (DEC-0022). `DeliveryError` moved into the application layer, shared by both senders.
+- `src/ai/providers/openai.ts` — second AI provider, proving the abstraction (DEC-0023).
+- `api/{widget,dashboard,cron}.ts`, `vercel.json`, `tsconfig.build.json` — deployment surface (DEC-0024).
+- `docs/Deployment.md` — full path from repository to running service.
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -73,6 +80,8 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 | 8 persistence integration tests | Retriever calibration holds; turns persist with audit trail; `appendTurn` rolls back atomically; cross-business routing rejected; leads require contact details |
 | 12 widget security tests | Hijack-by-id, cross-business token reuse, dashboard-conversation continuation, paused employee, empty/oversized input, and both rate-limit scopes — all rejected, all before any provider call |
 | 9 HTTP end-to-end tests | Real server, real fetch: status codes, CORS allowlist, preflight, and no internal detail in error bodies |
+| 8 provider substitutability tests | The same engine on Anthropic and OpenAI produces identical replies, identical escalation behaviour, and identical grounding safety — only the audit's provider id differs |
+| 10 SMS tests | Segment budget respected (cost); E.164 validated before spending a request; Twilio codes classify permanence |
 | 12 JWT tests | Forged tokens rejected: `alg:none`, wrong secret, tampered payload, wrong issuer/audience, non-uuid subject, and a live algorithm-confusion attack against a JWKS endpoint |
 | 10 delivery/cron tests | Permanent vs retryable failures; cron rejects unauthenticated, wrong, and near-miss secrets without draining the queue |
 | 8 config tests | Every misconfiguration that would fail later in front of a customer fails at boot instead |
@@ -152,5 +161,8 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0019 | JWT verification uses an audited library with pinned algorithms |
 | DEC-0020 | Configuration validated at startup, strictly in production |
 | DEC-0021 | Scheduled-jobs endpoint authenticated with a shared secret |
+| DEC-0022 | SMS implemented with segment-budgeted rendering |
+| DEC-0023 | Second AI provider implemented to prove the abstraction |
+| DEC-0024 | Deployment targets Vercel with serverless entry points |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

@@ -11,10 +11,11 @@
  * Nothing above this file knows which provider is in use.
  */
 
-import type {
-  NotificationPayload,
-  NotificationRecipient,
-  NotificationSender,
+import {
+  DeliveryError,
+  type NotificationPayload,
+  type NotificationRecipient,
+  type NotificationSender,
 } from "../../application/notifications.js";
 
 export interface ResendConfig {
@@ -24,22 +25,6 @@ export interface ResendConfig {
   readonly baseUrl?: string;
   /** Overridable for tests; defaults to global fetch. */
   readonly fetchFn?: typeof fetch;
-}
-
-/**
- * Distinguishes retryable failures from permanent ones. The worker retries
- * everything, so a permanent failure (bad address, rejected domain) would
- * otherwise burn all six attempts before being recorded — slow and noisy.
- * Marking it terminal immediately surfaces it to the business faster.
- */
-export class EmailDeliveryError extends Error {
-  constructor(
-    message: string,
-    readonly permanent: boolean,
-  ) {
-    super(message);
-    this.name = "EmailDeliveryError";
-  }
 }
 
 export class ResendEmailSender implements NotificationSender {
@@ -76,7 +61,7 @@ export class ResendEmailSender implements NotificationSender {
       });
     } catch (cause) {
       // Network failure: always worth retrying.
-      throw new EmailDeliveryError(`Could not reach the email provider: ${String(cause)}`, false);
+      throw new DeliveryError(`Could not reach the email provider: ${String(cause)}`, false);
     }
 
     if (response.ok) return;
@@ -85,7 +70,7 @@ export class ResendEmailSender implements NotificationSender {
     // 4xx (except 429) means the request itself is wrong — retrying sends the
     // same wrong request five more times.
     const permanent = response.status >= 400 && response.status < 500 && response.status !== 429;
-    throw new EmailDeliveryError(
+    throw new DeliveryError(
       `Email provider returned ${response.status}: ${detail.slice(0, 300)}`,
       permanent,
     );

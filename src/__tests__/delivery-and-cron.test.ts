@@ -9,9 +9,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ResendEmailSender, EmailDeliveryError } from "../infrastructure/notifications/resend-sender.js";
+import { ResendEmailSender } from "../infrastructure/notifications/resend-sender.js";
 import { createScheduledJobsHandler } from "../http/scheduled-jobs-handler.js";
-import { isPermanentDeliveryFailure } from "../application/notifications.js";
+import { DeliveryError, isPermanentDeliveryFailure } from "../application/notifications.js";
 import { NotificationWorker } from "../application/notification-worker.js";
 import type { NotificationOutboxRepository, OutboxEntry } from "../application/notifications.js";
 
@@ -79,7 +79,7 @@ test("a 4xx is permanent and a 5xx or 429 is retryable", async () => {
       .send({ channel: "email", address: "x@y.z" }, { recipients: [], subject: "s", body: "b" })
       .then(() => null)
       .catch((e: unknown) => e);
-    assert.ok(error instanceof EmailDeliveryError, `status ${status}`);
+    assert.ok(error instanceof DeliveryError, `status ${status}`);
     assert.equal(error.permanent, true, `status ${status} should be permanent`);
     assert.equal(isPermanentDeliveryFailure(error), true);
   }
@@ -89,7 +89,7 @@ test("a 4xx is permanent and a 5xx or 429 is retryable", async () => {
       .send({ channel: "email", address: "x@y.z" }, { recipients: [], subject: "s", body: "b" })
       .then(() => null)
       .catch((e: unknown) => e);
-    assert.ok(error instanceof EmailDeliveryError, `status ${status}`);
+    assert.ok(error instanceof DeliveryError, `status ${status}`);
     assert.equal(error.permanent, false, `status ${status} should be retryable`);
   }
 });
@@ -106,7 +106,7 @@ test("a network failure is retryable", async () => {
     .send({ channel: "email", address: "x@y.z" }, { recipients: [], subject: "s", body: "b" })
     .then(() => null)
     .catch((e: unknown) => e);
-  assert.ok(error instanceof EmailDeliveryError);
+  assert.ok(error instanceof DeliveryError);
   assert.equal(error.permanent, false, "a transient network fault must be retried");
 });
 
@@ -144,7 +144,7 @@ test("a permanent failure is abandoned on the first attempt, not after six", asy
       {
         channel: "email",
         send: async () => {
-          throw new EmailDeliveryError("address rejected", true);
+          throw new DeliveryError("address rejected", true);
         },
       },
     ],

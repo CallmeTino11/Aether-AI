@@ -833,4 +833,120 @@ DEC-0013, DEC-0015
 ### Notes
 Tested to reject unauthenticated requests, wrong secrets, and near-miss secrets differing in one character, and asserted that a rejected request does not drain the queue.
 
+---
+
+## DEC-0022 — SMS is implemented rather than removed, with segment-budgeted rendering
+
+**Department:** Platform
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+The `sms` channel the dashboard offers is now implemented via Twilio. Escalation alerts render a separate short body sized to one 160-character SMS segment, prioritising the conversation link over message length. Production refuses to start without Twilio credentials.
+
+### Reason
+The dashboard let an owner add an SMS recipient while no sender existed, so every such alert failed permanently — the interface promising what the system could not do, which is exactly DEC-0017. Two options existed: remove the option or implement it. Implementing it is worth more, since SMS is the channel a small business owner actually notices.
+
+Rendering separately rather than truncating at send time is a cost decision: SMS bills per 160-character segment, so sending a full escalation body would cost several messages per alert and arrive as a wall of text on a phone. The full detail stays in the email and the dashboard.
+
+### Impact
+- Product
+- Engineering
+- Finance (per-message cost)
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0015, DEC-0017, DEC-0020
+
+### Notes
+`DeliveryError` moved from the Resend adapter into the application layer, since both senders raise it and the worker interprets it. Twilio error codes classify permanence more precisely than HTTP status (21211 invalid number is a permanent 400; 20429 throttling is a retryable 429), but an unrecognised code on a 4xx still falls back to status — a bug caught by a test that expected the fallback and found the implementation ignoring status whenever a code was present.
+
+---
+
+## DEC-0023 — A second AI provider is implemented to prove the abstraction
+
+**Department:** AI
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+An OpenAI adapter is implemented alongside Anthropic, and a test suite runs the same `ReceptionistEngine` against both, asserting identical behaviour — including the escalation-by-default safety rule (DEC-0006).
+
+### Reason
+Provider-agnosticism has been an architectural claim since session 002, but with one implementation it was an assertion rather than a fact: an abstraction with a single implementation is a guess about what varies. A second real vendor makes the differences visible and confines them to adapters.
+
+Concrete differences absorbed by the adapters, none of which reached business logic: system prompt hoisted to a top-level field vs inline as the first message; `input_tokens`/`output_tokens` vs `prompt_tokens`/`completion_tokens`; content-block array vs `choices[0].message.content`; and newer reasoning models rejecting `temperature` outright rather than ignoring it.
+
+### Impact
+- Engineering
+- Product (provider choice becomes a configuration decision, not a rewrite)
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0005, DEC-0006
+
+### Notes
+The most valuable assertion in the suite is that the grounding rule holds identically on both providers: with no matching knowledge, neither provider is called at all. A safety property that depended on which vendor was configured would not be a safety property.
+
+---
+
+## DEC-0024 — Deployment targets Vercel with serverless entry points
+
+**Department:** Infrastructure
+**Status:** Approved
+**Date:** 2026-08-11
+**Approved By:** Claude (under DEC-0003 delegation)
+
+### Decision
+Three serverless entry points (`api/widget.ts`, `api/dashboard.ts`, `api/cron.ts`) wrap the composition root, with routing, cron schedule, and caching in `vercel.json`. The application is built once per cold start and reused across invocations. Production builds exclude tests via `tsconfig.build.json`. `docs/Deployment.md` documents the full path from repository to running service.
+
+### Reason
+The handlers were already written against web-standard `Request`/`Response`, so these entry points are thin by design and the platform stays replaceable. Building the app lazily on first request rather than at module load means a configuration error surfaces with a useful message instead of an opaque platform crash.
+
+### Impact
+- Engineering
+- Infrastructure
+
+### Requires Documentation Update
+Yes
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+Completed — **not yet deployed**
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0005, DEC-0020, DEC-0021
+
+### Notes
+`widget.js` is served with a wildcard CORS header because it is public static JavaScript any customer site must be able to load; the API keeps a strict origin allowlist because it is credentialed. These protect different things and are not in conflict. Hobby-tier Vercel cron runs once daily, which is useless for escalation alerts — the documented schedule needs Pro, or any external scheduler pointed at `POST /api/cron`.
+
 <!-- Append new decisions below this line, in ascending numeric order -->

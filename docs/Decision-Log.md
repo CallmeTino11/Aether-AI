@@ -4,6 +4,18 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-08-11 — Session 010: SMS, Second Provider, Deployment Surface
+
+- **Changes made:** Implemented the SMS channel the dashboard was already offering; added an OpenAI adapter and a substitutability suite; built the Vercel deployment surface and a deployment guide.
+- **Bug found:** the Twilio adapter ignored HTTP status whenever a Twilio error code was present, so an unrecognised code on a 4xx was treated as retryable and would burn six attempts re-sending a rejected request. Caught by a test asserting the status fallback.
+- **Also fixed:** production build was shipping test files; now excluded via `tsconfig.build.json`.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, README, `.env.example`, config tests, src/index.ts
+- **Documents created:** `src/infrastructure/notifications/twilio-sender.ts`, `src/ai/providers/openai.ts`, `api/{widget,dashboard,cron}.ts`, `vercel.json`, `tsconfig.build.json`, `docs/Deployment.md`, `src/__tests__/{sms-delivery,provider-substitutability}.test.ts`, session 010 record
+- **Decisions created:** DEC-0022, DEC-0023, DEC-0024
+- **Decisions referenced:** DEC-0003, DEC-0005, DEC-0006, DEC-0015, DEC-0017, DEC-0020, DEC-0021
+- **Implementation changes:** 63 unit + 65 integration tests passing, integration verified twice
+- **Outstanding issues:** See `sessions/2026-08-11-session-010.md`
+
 ## 2026-08-11 — Session 009: Production Readiness
 
 - **Changes made:** Closed the three gaps between a working codebase and a deployable product — real Supabase JWT verification, a real email provider, and an authenticated scheduled-jobs endpoint — plus a composition root with eager config validation.

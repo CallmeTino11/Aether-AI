@@ -28,11 +28,18 @@ Create the operating system for AI employees that powers millions of businesses 
 - ~~Dashboard: hire an employee, upload knowledge, configure alerts, review escalations~~ — Done, DEC-0018
 - Second provider adapter (OpenAI) to prove the abstraction against a real second vendor
 
+## Next — requires the founder
+
+- **Deploy.** Code is deploy-ready (DEC-0024) but nothing has run outside CI. Needs Supabase, Vercel, and provider accounts — see `docs/Deployment.md`.
+- Signup flow: businesses are currently created with SQL.
+- Lead extraction: table, repository and constraint exist; nothing populates them.
+- Multi-business users: `resolveBusiness` takes the first membership.
+
 ## Later
 
 - ~~Real email provider~~ — Done (Resend adapter; swapping providers is one class)
 - ~~Scheduled worker invocation~~ — Done, DEC-0021 (authenticated cron endpoint + `vercel.json`)
-- SMS delivery (Twilio) — the `sms` channel exists in the schema but has no sender
+- ~~SMS delivery (Twilio)~~ — Done, DEC-0022
 - Multi-business users: `resolveBusiness` takes the first membership, so a user in two businesses sees only one
 
 ## Long-Term
