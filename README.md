@@ -13,6 +13,7 @@ This repository is the **single source of truth** for company knowledge, enginee
 | [`docs/Decision-Register.md`](docs/Decision-Register.md) | Every approved company decision, permanent record |
 | [`docs/Decision-Log.md`](docs/Decision-Log.md) | Session-by-session log of what changed |
 | [`docs/Roadmap.md`](docs/Roadmap.md) | Vision → near-term → backlog |
+| [`docs/Conversation-Compression-2026-08-11.md`](docs/Conversation-Compression-2026-08-11.md) | **Start here if you're a new AI session** — full project state and direction |
 | [`docs/Deployment.md`](docs/Deployment.md) | How to take this live, step by step |
 | [`docs/Folder-Structure.md`](docs/Folder-Structure.md) | What lives where and why |
 | [`docs/Coding-Standards.md`](docs/Coding-Standards.md) | Engineering conventions |
