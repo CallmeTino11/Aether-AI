@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aether AI — Workforce Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101B33;
+    --ink-soft:#4A5677;
+    --paper:#FBFAF4;
+    --paper-dim:#EFEBDD;
+    --paper-line:#DED8C4;
+    --brass:#A9843C;
+    --brass-soft:#D8C79A;
+    --stamp:#B5402F;
+    --stamp-soft:#E9C7BE;
+    --good:#3F8C56;
+    --good-soft:#D9EBDD;
+    --sidebar-w:230px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .serif{font-family:'Fraunces', serif;}
+  button{font-family:inherit; cursor:pointer;}
+  a{color:inherit; text-decoration:none;}
+
+  /* ================= APP SHELL ================= */
+  .app-shell{display:flex; min-height:100vh;}
+
+  /* ---- Sidebar ---- */
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0; background:var(--ink); color:var(--paper);
+    padding:26px 18px; display:flex; flex-direction:column; justify-content:space-between;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:center; gap:10px; padding:0 6px 26px; border-bottom:1px solid rgba(251,250,244,0.12); margin-bottom:22px;}
+  .brand-mark{width:26px; height:26px; border:1.5px solid var(--brass-soft); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-size:0.62rem; color:var(--brass-soft); flex-shrink:0;}
+  .brand-name{font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem;}
+  .nav-group-label{font-family:'IBM Plex Mono', monospace; font-size:0.62rem; letter-spacing:0.06em; color:#8189A5; padding:0 10px; margin:18px 0 8px;}
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:10px 10px; border-radius:3px; font-size:0.87rem;
+    color:#C9CFDD; border:none; background:transparent; width:100%; text-align:left; margin-bottom:2px;
+  }
+  .nav-item .nav-code{font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:#6E7797; width:22px; flex-shrink:0;}
+  .nav-item:hover{background:rgba(251,250,244,0.06); color:var(--paper);}
+  .nav-item.active{background:rgba(216,199,154,0.14); color:var(--paper);}
+  .nav-item.active .nav-code{color:var(--brass-soft);}
+  .sidebar-foot{padding:14px 10px; border-top:1px solid rgba(251,250,244,0.12); display:flex; align-items:center; gap:10px;}
+  .foot-avatar{width:30px; height:30px; border-radius:50%; background:var(--brass-soft); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:0.85rem; flex-shrink:0;}
+  .foot-org{font-size:0.8rem; line-height:1.3;}
+  .foot-org .mono{font-size:0.64rem; color:#8189A5;}
+
+  /* ---- Main area ---- */
+  .main{flex:1; min-width:0;}
+  .screen{display:none; padding:38px 44px 60px;}
+  .screen.active{display:block;}
+  .screen-header{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px; flex-wrap:wrap; gap:16px;}
+  .screen-eyebrow{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--brass); letter-spacing:0.03em; margin-bottom:6px;}
+  .screen-title{font-family:'Fraunces', serif; font-weight:500; font-size:1.85rem;}
+  .screen-sub{color:var(--ink-soft); font-size:0.92rem; margin-top:4px;}
+  .btn{padding:10px 18px; font-size:0.84rem; font-family:'IBM Plex Mono', monospace; border-radius:3px; border:1px solid var(--ink); background:transparent; color:var(--ink);}
+  .btn:hover{background:var(--ink); color:var(--paper);}
+  .btn-solid{background:var(--ink); color:var(--paper);}
+  .btn-solid:hover{background:#050C1C;}
+  .btn-stamp{background:var(--stamp); color:var(--paper); border-color:var(--stamp);}
+  .btn-stamp:hover{background:#943225;}
+
+  /* =============== DASHBOARD =============== */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:34px;}
+  .stat-card{background:var(--paper); border:1px solid var(--paper-line); border-radius:3px; padding:20px 20px 18px;}
+  .stat-label{font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--ink-soft); letter-spacing:0.03em;}
+  .stat-value{font-family:'Fraunces', serif; font-size:2rem; margin-top:10px;}
+  .stat-delta{font-size:0.76rem; margin-top:6px; color:var(--good);}
+  .stat-delta.neutral{color:var(--ink-soft);}
+  .stat-delta.warn{color:var(--stamp);}
+
+  .dash-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:22px; align-items:start;}
+  .panel{background:var(--paper); border:1px solid var(--paper-line); border-radius:3px;}
+  .panel-head{display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--paper-line);}
+  .panel-title{font-family:'Fraunces', serif; font-size:1.08rem;}
+  .panel-link{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--brass); border-bottom:1px solid var(--brass-soft);}
+
+  .roster-row{display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--paper-line); cursor:pointer;}
+  .roster-row:last-child{border-bottom:none;}
+  .roster-row:hover{background:var(--paper-dim);}
+  .roster-avatar{width:38px; height:38px; border-radius:3px; background:var(--ink); color:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-weight:600; flex-shrink:0;}
+  .roster-info{flex:1; min-width:0;}
+  .roster-name{font-weight:600; font-size:0.9rem;}
+  .roster-role{font-size:0.76rem; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;}
+  .roster-meta{text-align:right; flex-shrink:0;}
+  .roster-count{font-family:'Fraunces', serif; font-size:1rem;}
+  .roster-countlabel{font-size:0.68rem; color:var(--ink-soft);}
+  .status-dot{width:7px; height:7px; border-radius:50%; background:var(--good); display:inline-block; margin-right:6px;}
+  .status-dot.paused{background:#B7BECF;}
+
+  .ledger{padding:6px 0;}
+  .ledger-item{display:flex; gap:12px; padding:12px 20px; border-bottom:1px solid var(--paper-line); font-size:0.82rem;}
+  .ledger-item:last-child{border-bottom:none;}
+  .ledger-time{font-family:'IBM Plex Mono', monospace; font-size:0.68rem; color:var(--ink-soft); flex-shrink:0; width:44px; padding-top:2px;}
+  .ledger-text b{font-weight:600;}
+  .ledger-text .tag{display:inline-block; margin-top:4px; font-family:'IBM Plex Mono', monospace; font-size:0.62rem; padding:2px 6px; border-radius:20px; background:var(--paper-dim); color:var(--ink-soft);}
+  .ledger-text .tag.escalated{background:var(--stamp-soft); color:var(--stamp);}
+
+  .escalation-item{padding:14px 20px; border-bottom:1px solid var(--paper-line);}
+  .escalation-item:last-child{border-bottom:none;}
+  .esc-top{display:flex; justify-content:space-between; align-items:center;}
+  .esc-who{font-weight:600; font-size:0.85rem;}
+  .esc-time{font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--ink-soft);}
+  .esc-reason{font-size:0.8rem; color:var(--ink-soft); margin-top:5px;}
+  .esc-actions{margin-top:10px; display:flex; gap:10px;}
+  .esc-actions button{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; padding:6px 12px; border-radius:3px;}
+
+  /* =============== PROFILE / PERSONNEL FILE =============== */
+  .file-header{display:flex; gap:20px; align-items:center; background:var(--paper); border:1px solid var(--paper-line); border-radius:3px; padding:22px; margin-bottom:22px;}
+  .file-photo{width:64px; height:64px; border-radius:3px; background:var(--ink); color:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-size:1.7rem; flex-shrink:0;}
+  .file-id{flex:1;}
+  .file-id .mono{font-size:0.68rem; color:var(--ink-soft);}
+  .file-name{font-family:'Fraunces', serif; font-size:1.4rem; margin-top:2px;}
+  .file-role{font-size:0.85rem; color:var(--ink-soft);}
+  .file-status-toggle{display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono', monospace; font-size:0.78rem;}
+  .switch{width:38px; height:20px; border-radius:20px; background:var(--good); position:relative; cursor:pointer; flex-shrink:0;}
+  .switch::after{content:""; position:absolute; width:16px; height:16px; border-radius:50%; background:var(--paper); top:2px; right:2px; transition:0.15s;}
+  .switch.off{background:#C9CFDD;}
+  .switch.off::after{right:auto; left:2px;}
+
+  .tabs{display:flex; gap:2px; margin-bottom:20px; border-bottom:1px solid var(--paper-line);}
+  .tab-btn{padding:10px 4px; margin-right:26px; font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--ink-soft); background:transparent; border:none; border-bottom:2px solid transparent;}
+  .tab-btn.active{color:var(--ink); border-bottom-color:var(--stamp);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; background:var(--paper); border:1px solid var(--paper-line); border-radius:3px; padding:24px;}
+  .form-field{display:flex; flex-direction:column; gap:6px;}
+  .form-field.full{grid-column:1 / -1;}
+  .form-field label{font-family:'IBM Plex Mono', monospace; font-size:0.68rem; color:var(--ink-soft); letter-spacing:0.02em;}
+  .form-field input, .form-field select, .form-field textarea{
+    border:1px solid var(--paper-line); border-radius:3px; padding:9px 11px; font-family:'Inter'; font-size:0.87rem; background:var(--paper); color:var(--ink);
+  }
+  .form-field textarea{resize:vertical; min-height:70px;}
+  .checkrow{display:flex; gap:20px; flex-wrap:wrap;}
+  .checkitem{display:flex; align-items:center; gap:7px; font-size:0.85rem;}
+
+  .fact-card{display:flex; justify-content:space-between; gap:16px; background:var(--paper); border:1px solid var(--paper-line); border-left:3px solid var(--brass-soft); border-radius:3px; padding:16px 18px; margin-bottom:10px;}
+  .fact-q{font-weight:600; font-size:0.87rem;}
+  .fact-a{font-size:0.83rem; color:var(--ink-soft); margin-top:4px;}
+  .fact-edit{font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--brass); flex-shrink:0; align-self:flex-start;}
+
+  .rule-card{background:var(--paper); border:1px solid var(--paper-line); border-radius:3px; padding:16px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:14px;}
+  .rule-text{font-size:0.87rem;}
+  .rule-text .mono{font-size:0.68rem; color:var(--ink-soft); display:block; margin-top:4px;}
+  .rule-badge{font-family:'IBM Plex Mono', monospace; font-size:0.68rem; padding:4px 9px; border-radius:20px; background:var(--stamp-soft); color:var(--stamp); flex-shrink:0;}
+
+  .tier-option{border:1px solid var(--paper-line); border-radius:3px; padding:16px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
+  .tier-option.selected{border-color:var(--ink); background:var(--paper-dim);}
+  .tier-option-name{font-family:'Fraunces', serif; font-size:1rem;}
+  .tier-option-desc{font-size:0.78rem; color:var(--ink-soft); margin-top:3px;}
+  .radio-dot{width:16px; height:16px; border-radius:50%; border:1.5px solid var(--ink-soft); flex-shrink:0; position:relative;}
+  .tier-option.selected .radio-dot{border-color:var(--ink);}
+  .tier-option.selected .radio-dot::after{content:""; position:absolute; width:8px; height:8px; border-radius:50%; background:var(--ink); top:3px; left:3px;}
+
+  .perf-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px;}
+  .bar-chart{display:flex; align-items:flex-end; gap:8px; height:110px; margin-top:14px;}
+  .bar{flex:1; background:var(--brass-soft); border-radius:2px 2px 0 0; position:relative;}
+  .bar.hi{background:var(--ink);}
+
+  /* =============== WIDGET PREVIEW =============== */
+  .widget-layout{display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start;}
+  .browser-frame{background:var(--paper); border:1px solid var(--paper-line); border-radius:6px; overflow:hidden;}
+  .browser-bar{background:var(--paper-dim); padding:10px 14px; display:flex; gap:6px; align-items:center; border-bottom:1px solid var(--paper-line);}
+  .browser-dot{width:8px; height:8px; border-radius:50%; background:var(--paper-line);}
+  .browser-body{height:560px; background:#fff; position:relative; background:
+      linear-gradient(180deg, #F4F1E6 0%, #EFEBDD 100%); overflow:hidden;}
+  .mock-site-header{height:56px; background:var(--ink); display:flex; align-items:center; padding:0 22px; color:var(--paper); font-family:'Fraunces',serif; font-size:1rem;}
+  .mock-site-body{padding:26px; color:var(--ink-soft); font-size:0.85rem; line-height:1.7; max-width:70%;}
+
+  .chat-launcher{
+    position:absolute; bottom:20px; right:20px; width:54px; height:54px; border-radius:50%;
+    background:var(--stamp); display:flex; align-items:center; justify-content:center; color:var(--paper);
+    font-family:'Fraunces', serif; font-size:1.3rem; box-shadow:0 10px 24px -8px rgba(0,0,0,0.4); border:none;
+  }
+  .chat-panel{
+    position:absolute; bottom:20px; right:20px; width:300px; height:400px; background:var(--paper);
+    border-radius:8px; box-shadow:0 20px 44px -12px rgba(0,0,0,0.4); display:none; flex-direction:column; overflow:hidden;
+    border:1px solid var(--paper-line);
+  }
+  .chat-panel.open{display:flex;}
+  .chat-head{background:var(--ink); color:var(--paper); padding:14px 16px; display:flex; align-items:center; gap:10px;}
+  .chat-head-avatar{width:30px; height:30px; border-radius:50%; background:var(--brass-soft); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:0.85rem;}
+  .chat-head-name{font-size:0.85rem; font-weight:600;}
+  .chat-head-status{font-size:0.68rem; color:#8FE0A4; font-family:'IBM Plex Mono', monospace;}
+  .chat-body{flex:1; padding:14px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;}
+  .msg{max-width:80%; padding:9px 12px; border-radius:10px; font-size:0.8rem; line-height:1.45;}
+  .msg.bot{background:var(--paper-dim); align-self:flex-start; border-bottom-left-radius:2px;}
+  .msg.user{background:var(--ink); color:var(--paper); align-self:flex-end; border-bottom-right-radius:2px;}
+  .msg.system{align-self:center; font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--ink-soft); background:transparent;}
+  .chat-input{border-top:1px solid var(--paper-line); padding:10px 12px; display:flex; gap:8px;}
+  .chat-input input{flex:1; border:1px solid var(--paper-line); border-radius:20px; padding:8px 14px; font-size:0.8rem; font-family:'Inter';}
+  .chat-foot{text-align:center; font-family:'IBM Plex Mono', monospace; font-size:0.6rem; color:var(--ink-soft); padding:6px; background:var(--paper-dim);}
+
+  .widget-settings .form-field{margin-bottom:16px;}
+  .swatch-row{display:flex; gap:10px;}
+  .swatch{width:26px; height:26px; border-radius:50%; border:2px solid transparent; cursor:pointer;}
+  .swatch.active{border-color:var(--ink);}
+
+  /* =============== PLANS / TIERS =============== */
+  .toggle-row{display:flex; align-items:center; gap:12px; margin-bottom:30px;}
+  .toggle-pill{display:flex; background:var(--paper-dim); border-radius:20px; padding:3px;}
+  .toggle-pill button{padding:7px 16px; border-radius:20px; font-size:0.8rem; background:transparent; border:none; color:var(--ink-soft);}
+  .toggle-pill button.active{background:var(--ink); color:var(--paper);}
+  .save-badge{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--good); background:var(--good-soft); padding:4px 9px; border-radius:20px;}
+
+  .plans-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:40px;}
+  .plan-card{border:1px solid var(--paper-line); border-radius:4px; background:var(--paper); padding:26px 24px; display:flex; flex-direction:column;}
+  .plan-card.feat{border-color:var(--ink); box-shadow:0 14px 34px -16px rgba(16,27,51,0.3);}
+  .plan-name{font-family:'IBM Plex Mono', monospace; font-size:0.74rem; color:var(--brass); letter-spacing:0.03em;}
+  .plan-price{font-family:'Fraunces', serif; font-size:2.1rem; margin-top:12px;}
+  .plan-price span{font-size:0.85rem; font-weight:400; color:var(--ink-soft); font-family:'Inter';}
+  .plan-desc{font-size:0.83rem; color:var(--ink-soft); margin-top:10px; min-height:40px;}
+  .split-badges{display:flex; gap:8px; margin:16px 0;}
+  .split-badge{font-family:'IBM Plex Mono', monospace; font-size:0.64rem; padding:4px 8px; border-radius:20px;}
+  .split-badge.ai{background:var(--paper-dim); color:var(--ink-soft);}
+  .split-badge.human{background:var(--stamp-soft); color:var(--stamp);}
+  .plan-list{list-style:none; margin:14px 0 20px; flex:1;}
+  .plan-list li{font-size:0.83rem; padding:7px 0; border-top:1px solid var(--paper-line); display:flex; gap:8px;}
+  .plan-list li:first-child{border-top:none;}
+  .plan-list li::before{content:"—"; color:var(--brass);}
+
+  table.compare{width:100%; border-collapse:collapse; background:var(--paper); border:1px solid var(--paper-line);}
+  table.compare th, table.compare td{padding:12px 16px; text-align:left; border-bottom:1px solid var(--paper-line); font-size:0.83rem;}
+  table.compare th{font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--ink-soft); text-align:center; letter-spacing:0.02em;}
+  table.compare th:first-child{text-align:left;}
+  table.compare td:not(:first-child){text-align:center;}
+  table.compare tr:last-child td{border-bottom:none;}
+  table.compare td:first-child{color:var(--ink-soft); font-size:0.8rem;}
+
+  @media (max-width:1080px){
+    .dash-grid, .widget-layout, .plans-grid{grid-template-columns:1fr;}
+    .stat-row{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:760px){
+    .sidebar{display:none;}
+    .screen{padding:24px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <div class="sidebar">
+    <div>
+      <div class="brand"><span class="brand-mark">Æ</span><span class="brand-name">Aether AI</span></div>
+      <div class="nav-group-label">CONSOLE</div>
+      <button class="nav-item active" data-screen="dashboard"><span class="nav-code">01</span>Dashboard</button>
+
+      <div class="nav-group-label">YOUR ROSTER — 3 HIRED</div>
+      <div id="rosterNavList">
+        <button class="nav-item roster-nav" data-employee="receptionist" onclick="openEmployee('receptionist', this)"><span class="nav-code">R</span>Receptionist</button>
+        <button class="nav-item roster-nav" data-employee="support" onclick="openEmployee('support', this)"><span class="nav-code">S</span>Support</button>
+        <button class="nav-item roster-nav" data-employee="sales" onclick="openEmployee('sales', this)"><span class="nav-code">SR</span>Sales Rep</button>
+      </div>
+      <button class="nav-item" style="color:var(--brass-soft);" onclick="openAddEmployee()"><span class="nav-code">+</span>Add employee</button>
+
+      <div class="nav-group-label">WORKSPACE</div>
+      <button class="nav-item" data-screen="widget"><span class="nav-code">03</span>Widget Preview</button>
+      <button class="nav-item" data-screen="plans"><span class="nav-code">04</span>Plans &amp; Tiers</button>
+      <button class="nav-item" disabled style="opacity:0.4;"><span class="nav-code">—</span>Audit Log</button>
+      <button class="nav-item" disabled style="opacity:0.4;"><span class="nav-code">—</span>Settings</button>
+    </div>
+    <div class="sidebar-foot">
+      <div class="foot-avatar">A</div>
+      <div class="foot-org">Acme Dental Group<br><span class="mono">MANAGED TIER</span></div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+
+    <!-- ========== SCREEN 1: DASHBOARD ========== -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="screen-header">
+        <div>
+          <div class="screen-eyebrow">DASHBOARD</div>
+          <div class="screen-title">Good afternoon, Tino.</div>
+          <div class="screen-sub">Sunday, September 6 · 3 employees active, 1 on the bench</div>
+        </div>
+        <button class="btn btn-solid">+ Add employee</button>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">ACTIVE EMPLOYEES</div>
+          <div class="stat-value">3</div>
+          <div class="stat-delta neutral">of 8 roles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">CONVERSATIONS TODAY</div>
+          <div class="stat-value">142</div>
+          <div class="stat-delta">↑ 18% vs yesterday</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">OPEN ESCALATIONS</div>
+          <div class="stat-value">4</div>
+          <div class="stat-delta warn">2 waiting &gt; 1 hour</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">AVG RESPONSE TIME</div>
+          <div class="stat-value">3.2s</div>
+          <div class="stat-delta">↓ 0.4s vs last week</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div>
+          <div class="panel" style="margin-bottom:20px;">
+            <div class="panel-head"><div class="panel-title">Today's activity</div><a class="panel-link">View full log →</a></div>
+            <div class="ledger">
+              <div class="ledger-item"><div class="ledger-time">2:41p</div><div class="ledger-text"><b>Receptionist</b> booked a cleaning appointment for Maria G.<div class="tag">resolved</div></div></div>
+              <div class="ledger-item"><div class="ledger-time">2:22p</div><div class="ledger-text"><b>Support</b> couldn't confirm insurance coverage — flagged for review.<div class="tag escalated">escalated</div></div></div>
+              <div class="ledger-item"><div class="ledger-time">1:58p</div><div class="ledger-text"><b>Sales Rep</b> qualified a lead for the Invisalign consult and handed off.<div class="tag">handed off</div></div></div>
+              <div class="ledger-item"><div class="ledger-time">1:35p</div><div class="ledger-text"><b>Receptionist</b> answered a hours/location question.<div class="tag">resolved</div></div></div>
+              <div class="ledger-item"><div class="ledger-time">1:02p</div><div class="ledger-text"><b>Support</b> asked to speak to a person — a pricing question outside its file.<div class="tag escalated">escalated</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="margin-bottom:20px;">
+            <div class="panel-head"><div class="panel-title">Your roster</div><a class="panel-link" onclick="openEmployee('receptionist')">Manage →</a></div>
+            <div>
+              <div class="roster-row" onclick="openEmployee('receptionist')">
+                <div class="roster-avatar">R</div>
+                <div class="roster-info"><div class="roster-name"><span class="status-dot"></span>Receptionist</div><div class="roster-role">AR-01 · Front desk</div></div>
+                <div class="roster-meta"><div class="roster-count">61</div><div class="roster-countlabel">convos today</div></div>
+              </div>
+              <div class="roster-row" onclick="openEmployee('support')">
+                <div class="roster-avatar">S</div>
+                <div class="roster-info"><div class="roster-name"><span class="status-dot"></span>Support</div><div class="roster-role">CS-04 · Tickets</div></div>
+                <div class="roster-meta"><div class="roster-count">54</div><div class="roster-countlabel">convos today</div></div>
+              </div>
+              <div class="roster-row" onclick="openEmployee('sales')">
+                <div class="roster-avatar">SR</div>
+                <div class="roster-info"><div class="roster-name"><span class="status-dot"></span>Sales Rep</div><div class="roster-role">SR-03 · Leads</div></div>
+                <div class="roster-meta"><div class="roster-count">27</div><div class="roster-countlabel">convos today</div></div>
+              </div>
+              <div class="roster-row">
+                <div class="roster-avatar" style="background:var(--paper-dim); color:var(--ink-soft);">HR</div>
+                <div class="roster-info"><div class="roster-name"><span class="status-dot paused"></span>HR</div><div class="roster-role">HR-05 · On the bench</div></div>
+                <div class="roster-meta"><a class="panel-link" onclick="openAddEmployee()">Hire →</a></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Needs you</div><span class="mono" style="font-size:0.7rem; color:var(--stamp);">4 pending</span></div>
+            <div>
+              <div class="escalation-item">
+                <div class="esc-top"><span class="esc-who">Insurance coverage question</span><span class="esc-time">14m ago</span></div>
+                <div class="esc-reason">Customer asked if their PPO plan is in-network — not in the Support file.</div>
+                <div class="esc-actions"><button class="btn">View chat</button><button class="btn btn-solid">Reply</button></div>
+              </div>
+              <div class="escalation-item">
+                <div class="esc-top"><span class="esc-who">Pricing — outside file</span><span class="esc-time">52m ago</span></div>
+                <div class="esc-reason">Asked about a bundle discount not covered in current pricing sheet.</div>
+                <div class="esc-actions"><button class="btn">View chat</button><button class="btn btn-solid">Reply</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN 2: PERSONNEL FILE ========== -->
+    <div class="screen" id="screen-profile">
+      <div class="screen-header">
+        <div>
+          <div class="screen-eyebrow">PERSONNEL FILE</div>
+          <div class="screen-title" id="profileTitle">Receptionist</div>
+          <div class="screen-sub" id="profileSub">AR-01 · Hired Aug 14, 2026</div>
+        </div>
+        <div class="file-status-toggle">Active<div class="switch" id="statusSwitch" onclick="this.classList.toggle('off')"></div></div>
+      </div>
+
+      <div class="file-header">
+        <div class="file-photo" id="profilePhoto">R</div>
+        <div class="file-id">
+          <div class="mono" id="profileFileId">AETHER AI · PERSONNEL FILE NO. AR-0001</div>
+          <div class="file-name" id="profileFileName">Receptionist</div>
+          <div class="file-role" id="profileFileRole">Front desk · web chat + phone · 24/7</div>
+        </div>
+        <button class="btn">View audit log</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="t-profile">PROFILE</button>
+        <button class="tab-btn" data-tab="t-knowledge">KNOWLEDGE</button>
+        <button class="tab-btn" data-tab="t-escalation">ESCALATION</button>
+        <button class="tab-btn" data-tab="t-performance">PERFORMANCE</button>
+      </div>
+
+      <div class="tab-panel active" id="t-profile">
+        <div class="form-grid">
+          <div class="form-field"><label>ROLE NAME</label><input type="text" value="Receptionist"></div>
+          <div class="form-field"><label>DEPARTMENT CODE</label><input type="text" value="AR-01"></div>
+          <div class="form-field full"><label>CHANNELS ENABLED</label>
+            <div class="checkrow">
+              <div class="checkitem"><input type="checkbox" checked> Web chat widget</div>
+              <div class="checkitem"><input type="checkbox" checked> Phone line</div>
+              <div class="checkitem"><input type="checkbox"> Email inbox</div>
+              <div class="checkitem"><input type="checkbox"> SMS</div>
+            </div>
+          </div>
+          <div class="form-field"><label>WORKING HOURS</label><select><option>24/7</option><option>Business hours only</option><option>Custom schedule</option></select></div>
+          <div class="form-field"><label>GREETING TONE</label><select><option>Warm &amp; brief</option><option>Formal</option><option>Casual</option></select></div>
+          <div class="form-field full"><label>OPENING MESSAGE</label><textarea>Hi, thanks for reaching out to Acme Dental — how can I help you today?</textarea></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="t-knowledge">
+        <p class="screen-sub" style="margin-bottom:16px;">Facts the Receptionist is allowed to answer with. Anything outside this file gets escalated instead of guessed.</p>
+        <div class="fact-card"><div><div class="fact-q">What are your hours?</div><div class="fact-a">Mon–Fri 8am–6pm, Sat 9am–2pm. Closed Sundays and major holidays.</div></div><a class="fact-edit">Edit</a></div>
+        <div class="fact-card"><div><div class="fact-q">Do you take walk-ins?</div><div class="fact-a">Yes for emergencies only — otherwise we ask for a booked appointment.</div></div><a class="fact-edit">Edit</a></div>
+        <div class="fact-card"><div><div class="fact-q">Where are you located?</div><div class="fact-a">4 locations — the widget asks for a zip code and routes to the nearest one.</div></div><a class="fact-edit">Edit</a></div>
+        <button class="btn" style="margin-top:6px;">+ Add a fact</button>
+      </div>
+
+      <div class="tab-panel" id="t-escalation">
+        <p class="screen-sub" style="margin-bottom:16px;">Rules for when the Receptionist should hand off to a person.</p>
+        <div class="rule-card"><div class="rule-text">Question is about insurance coverage or billing<span class="mono">→ escalate to: Front desk email</span></div><span class="rule-badge">ALWAYS</span></div>
+        <div class="rule-card"><div class="rule-text">Customer explicitly asks for a human<span class="mono">→ escalate to: Telegram (on-call)</span></div><span class="rule-badge">ALWAYS</span></div>
+        <div class="rule-card"><div class="rule-text">Question isn't covered anywhere in the Knowledge tab<span class="mono">→ escalate to: Front desk email</span></div><span class="rule-badge">ALWAYS</span></div>
+        <button class="btn" style="margin-top:6px;">+ Add a rule</button>
+      </div>
+
+      <div class="tab-panel" id="t-performance">
+        <p class="screen-sub" style="margin-bottom:10px;">Which model tier this role runs on. Higher tiers cost more per conversation but handle harder judgment calls.</p>
+        <div class="tier-option selected"><div><div class="tier-option-name">Fast</div><div class="tier-option-desc">Best for high-volume, simple lookups — hours, location, booking. Near-instant replies.</div></div><div class="radio-dot"></div></div>
+        <div class="tier-option"><div><div class="tier-option-name">Reasoning</div><div class="tier-option-desc">Multi-turn judgment calls — better for Sales Rep, Support, Finance roles.</div></div><div class="radio-dot"></div></div>
+        <div class="tier-option"><div><div class="tier-option-name">Escalation-only</div><div class="tier-option-desc">Rare, high-stakes calls. Reserved for Ops Manager oversight.</div></div><div class="radio-dot"></div></div>
+
+        <div class="perf-grid">
+          <div class="stat-card"><div class="stat-label">RESOLUTION RATE</div><div class="stat-value">88%</div></div>
+          <div class="stat-card"><div class="stat-label">ESCALATION RATE</div><div class="stat-value">12%</div></div>
+          <div class="stat-card"><div class="stat-label">AVG HANDLE TIME</div><div class="stat-value">1m 40s</div></div>
+        </div>
+        <div class="panel" style="margin-top:18px; padding:20px;">
+          <div class="panel-title" style="margin-bottom:4px;">Conversations, last 7 days</div>
+          <div class="bar-chart">
+            <div class="bar" style="height:40%"></div><div class="bar" style="height:55%"></div><div class="bar hi" style="height:80%"></div>
+            <div class="bar" style="height:62%"></div><div class="bar" style="height:70%"></div><div class="bar hi" style="height:95%"></div><div class="bar" style="height:58%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN 3: WIDGET PREVIEW ========== -->
+    <div class="screen" id="screen-widget">
+      <div class="screen-header">
+        <div>
+          <div class="screen-eyebrow">WIDGET PREVIEW</div>
+          <div class="screen-title">What your customers see</div>
+          <div class="screen-sub">Live preview — click the chat bubble in the corner</div>
+        </div>
+        <button class="btn btn-solid">Copy embed code</button>
+      </div>
+
+      <div class="widget-layout">
+        <div class="browser-frame">
+          <div class="browser-bar"><div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
+            <span class="mono" style="font-size:0.68rem; color:var(--ink-soft); margin-left:10px;">acmedental.com</span></div>
+          <div class="browser-body">
+            <div class="mock-site-header">Acme Dental Group</div>
+            <div class="mock-site-body">
+              <p style="font-family:'Fraunces',serif; font-size:1.3rem; color:var(--ink); margin-bottom:10px;">Book your visit in minutes.</p>
+              <p>Four locations across the metro. Same-day appointments available for emergencies.</p>
+            </div>
+            <button class="chat-launcher" onclick="document.getElementById('chatPanel').classList.toggle('open')">💬</button>
+            <div class="chat-panel" id="chatPanel">
+              <div class="chat-head">
+                <div class="chat-head-avatar">R</div>
+                <div><div class="chat-head-name">Receptionist</div><div class="chat-head-status">● Active now</div></div>
+              </div>
+              <div class="chat-body">
+                <div class="msg system">Today, 2:41 PM</div>
+                <div class="msg bot">Hi, thanks for reaching out to Acme Dental — how can I help you today?</div>
+                <div class="msg user">Do you take Delta Dental PPO?</div>
+                <div class="msg bot">That's a good one for our front desk to confirm directly — I've flagged this for a team member and they'll follow up by email shortly. Anything else I can help with meanwhile?</div>
+                <div class="msg system">escalated to front desk</div>
+              </div>
+              <div class="chat-input"><input type="text" placeholder="Type a message…"></div>
+              <div class="chat-foot">POWERED BY AETHER AI</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget-settings">
+          <div class="panel" style="padding:20px;">
+            <div class="panel-title" style="margin-bottom:16px;">Widget settings</div>
+            <div class="form-field"><label>ACCENT COLOR</label>
+              <div class="swatch-row">
+                <div class="swatch active" style="background:#B5402F;"></div>
+                <div class="swatch" style="background:#101B33;"></div>
+                <div class="swatch" style="background:#3F8C56;"></div>
+                <div class="swatch" style="background:#A9843C;"></div>
+              </div>
+            </div>
+            <div class="form-field"><label>POSITION</label><select><option>Bottom right</option><option>Bottom left</option></select></div>
+            <div class="form-field"><label>GREETING MESSAGE</label><textarea>Hi, thanks for reaching out to Acme Dental — how can I help you today?</textarea></div>
+            <div class="checkitem" style="margin-top:6px;"><input type="checkbox" checked> Show "Powered by Aether AI"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SCREEN 4: PLANS & TIERS ========== -->
+    <div class="screen" id="screen-plans">
+      <div class="screen-header">
+        <div>
+          <div class="screen-eyebrow">PLANS &amp; TIERS</div>
+          <div class="screen-title">Pay a salary, not a software bill</div>
+          <div class="screen-sub">Every tier is built on the same grounded, audited engine — the difference is how much of the judgment call is human.</div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-pill">
+          <button class="active" id="btnMonthly" onclick="setBilling('m')">Monthly</button>
+          <button id="btnAnnual" onclick="setBilling('a')">Annual</button>
+        </div>
+        <span class="save-badge">Save 15% annually</span>
+      </div>
+
+      <div class="plans-grid">
+        <div class="plan-card">
+          <div class="plan-name">ESSENTIALS</div>
+          <div class="plan-price"><span class="amt">$X</span><span>/mo per role</span></div>
+          <div class="plan-desc">Fully autonomous within its file. Escalates straight to your own team.</div>
+          <div class="split-badges"><span class="split-badge ai">95% AI</span><span class="split-badge human">5% you</span></div>
+          <ul class="plan-list">
+            <li>1 Digital Employee</li>
+            <li>Grounded answers only</li>
+            <li>Full audit log</li>
+            <li>Email + web chat</li>
+          </ul>
+          <button class="btn">Choose Essentials</button>
+        </div>
+        <div class="plan-card feat">
+          <div class="plan-name">MANAGED</div>
+          <div class="plan-price"><span class="amt">$X</span><span>/mo per role</span></div>
+          <div class="plan-desc">Aether reviews flagged conversations so the file keeps improving.</div>
+          <div class="split-badges"><span class="split-badge ai">85% AI</span><span class="split-badge human">15% Aether</span></div>
+          <ul class="plan-list">
+            <li>Up to 3 Digital Employees</li>
+            <li>Weekly review of edge cases</li>
+            <li>Priority escalation routing</li>
+            <li>Phone + web chat + email</li>
+          </ul>
+          <button class="btn btn-stamp">Choose Managed</button>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">DEDICATED</div>
+          <div class="plan-price"><span class="amt">Custom</span></div>
+          <div class="plan-desc">Full workforce, tuned monthly by a dedicated account manager.</div>
+          <div class="split-badges"><span class="split-badge ai">70% AI</span><span class="split-badge human">30% Aether</span></div>
+          <ul class="plan-list">
+            <li>All 8 roles</li>
+            <li>Dedicated account manager</li>
+            <li>Monthly tuning &amp; reporting</li>
+            <li>All channels + custom integrations</li>
+          </ul>
+          <button class="btn">Talk to us</button>
+        </div>
+      </div>
+
+      <table class="compare">
+        <tr><th>Feature</th><th>Essentials</th><th>Managed</th><th>Dedicated</th></tr>
+        <tr><td>Digital Employees included</td><td>1</td><td>Up to 3</td><td>All 8</td></tr>
+        <tr><td>Human review of edge cases</td><td>—</td><td>Weekly</td><td>Continuous</td></tr>
+        <tr><td>Dedicated account manager</td><td>—</td><td>—</td><td>✓</td></tr>
+        <tr><td>Audit log retention</td><td>30 days</td><td>90 days</td><td>Unlimited</td></tr>
+        <tr><td>Support SLA</td><td>Email, 48h</td><td>Email, 24h</td><td>Priority, 4h</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== ADD EMPLOYEE MODAL ===== -->
+<div id="addEmployeeModal" style="display:none; position:fixed; inset:0; background:rgba(16,27,51,0.6); z-index:80; align-items:center; justify-content:center;">
+  <div style="background:var(--paper); color:var(--ink); border-radius:6px; width:440px; max-width:90vw; max-height:80vh; overflow-y:auto; padding:26px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+      <div class="panel-title" style="font-size:1.2rem;">Add an employee</div>
+      <button class="btn" onclick="closeAddEmployee()" style="padding:6px 10px;">✕</button>
+    </div>
+    <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:18px;">Pick an open role from the roster. It'll show up in your sidebar right away — you fill in its knowledge file after.</p>
+    <div id="addEmployeeList"></div>
+  </div>
+</div>
+
+<script>
+  // ---- Per-employee data for the Personnel File screen ----
+  const employeeData = {
+    receptionist:{name:'Receptionist', code:'AR-01', avatar:'R', hired:'Aug 14, 2026', role:'Front desk · web chat + phone · 24/7'},
+    support:{name:'Support', code:'CS-04', avatar:'S', hired:'Aug 22, 2026', role:'Tickets · web chat + email · business hours'},
+    sales:{name:'Sales Rep', code:'SR-03', avatar:'SR', hired:'Aug 29, 2026', role:'Inbound leads · web chat · 24/7'}
+  };
+  const openRoles = {
+    secretary:{name:'Secretary', code:'AS-02', avatar:'S'},
+    hr:{name:'HR', code:'HR-05', avatar:'HR'},
+    finance:{name:'Finance', code:'FN-06', avatar:'FN'},
+    marketing:{name:'Marketing', code:'MK-07', avatar:'MK'},
+    ops:{name:'Ops Manager', code:'OM-08', avatar:'OM'}
+  };
+
+  function openEmployee(key){
+    const d = employeeData[key];
+    if(!d) return;
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-profile').classList.add('active');
+    document.querySelectorAll('.sidebar .nav-item').forEach(n=>n.classList.remove('active'));
+    const navBtn = document.querySelector('.nav-item[data-employee="'+key+'"]');
+    if(navBtn) navBtn.classList.add('active');
+    document.getElementById('profileTitle').textContent = d.name;
+    document.getElementById('profileSub').textContent = d.code+' · Hired '+d.hired;
+    document.getElementById('profilePhoto').textContent = d.avatar;
+    document.getElementById('profileFileId').textContent = 'AETHER AI · PERSONNEL FILE NO. '+d.code;
+    document.getElementById('profileFileName').textContent = d.name;
+    document.getElementById('profileFileRole').textContent = d.role;
+    window.scrollTo(0,0);
+  }
+
+  function openAddEmployee(){
+    const list = document.getElementById('addEmployeeList');
+    list.innerHTML = '';
+    Object.keys(openRoles).forEach(key=>{
+      const r = openRoles[key];
+      const row = document.createElement('div');
+      row.className = 'roster-row';
+      row.style.cursor = 'default';
+      row.innerHTML = `<div class="roster-avatar" style="background:var(--paper-dim); color:var(--ink-soft);">${r.avatar}</div>
+        <div class="roster-info"><div class="roster-name">${r.name}</div><div class="roster-role">${r.code}</div></div>
+        <div class="roster-meta"><button class="btn btn-solid" style="padding:6px 12px; font-size:0.72rem;">Add</button></div>`;
+      row.querySelector('button').onclick = ()=>hireRole(key, r);
+      list.appendChild(row);
+    });
+    document.getElementById('addEmployeeModal').style.display = 'flex';
+  }
+  function closeAddEmployee(){
+    document.getElementById('addEmployeeModal').style.display = 'none';
+  }
+  function hireRole(key, r){
+    // add to employeeData + sidebar roster list, then open its file
+    employeeData[key] = {name:r.name, code:r.code, avatar:r.avatar, hired:'Today', role:'Not yet configured — set channels and hours in the Profile tab.'};
+    delete openRoles[key];
+    const btn = document.createElement('button');
+    btn.className = 'nav-item roster-nav';
+    btn.setAttribute('data-employee', key);
+    btn.setAttribute('onclick', "openEmployee('"+key+"')");
+    btn.innerHTML = '<span class="nav-code">'+r.avatar+'</span>'+r.name;
+    document.getElementById('rosterNavList').appendChild(btn);
+    const label = document.querySelector('.nav-group-label');
+    label.textContent = 'YOUR ROSTER — '+document.querySelectorAll('.roster-nav').length+' HIRED';
+    closeAddEmployee();
+    openEmployee(key);
+  }
+
+  // ---- Screen navigation ----
+  document.querySelectorAll('[data-screen]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const target = el.getAttribute('data-screen');
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('screen-'+target).classList.add('active');
+      document.querySelectorAll('.sidebar .nav-item').forEach(n=>n.classList.remove('active'));
+      const navBtn = document.querySelector('.sidebar .nav-item[data-screen="'+target+'"]');
+      if(navBtn) navBtn.classList.add('active');
+      window.scrollTo(0,0);
+    });
+  });
+
+  // ---- Personnel file tabs ----
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+    });
+  });
+
+  // ---- Model tier selector ----
+  document.querySelectorAll('.tier-option').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      opt.parentElement.querySelectorAll('.tier-option').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+
+  // ---- Widget color swatches ----
+  document.querySelectorAll('.swatch').forEach(sw=>{
+    sw.addEventListener('click', ()=>{
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+      sw.classList.add('active');
+      const color = sw.style.background;
+      document.querySelector('.chat-head').style.background = color;
+      document.querySelector('.chat-launcher').style.background = color;
+    });
+  });
+
+  // ---- Billing toggle ----
+  function setBilling(mode){
+    document.getElementById('btnMonthly').classList.toggle('active', mode==='m');
+    document.getElementById('btnAnnual').classList.toggle('active', mode==='a');
+    document.querySelectorAll('.plan-price .amt').forEach(el=>{
+      if(el.textContent === 'Custom') return;
+    });
+  }
+</script>
+</body>
+</html>

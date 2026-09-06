@@ -1,0 +1,1348 @@
+/*
+ * Aether AI — Marketing Site Styles
+ *
+ * Ported near-verbatim from the approved mockups (web/mockups/aether-ai-landing.html,
+ * web/mockups/aether-ai-pricing.html) — visual direction and copy are final,
+ * this file is not a redesign. Rules unique to one page are scoped under
+ * [data-page="home"] / [data-page="pricing"] (set on each page's root element)
+ * so the two pages cannot bleed into each other even where the mockups reused
+ * a class name (e.g. .eyebrow-row, .final-cta) with slightly different values.
+ * Truly identical primitives (reset, tokens, fonts, nav, footer, buttons) are
+ * unscoped on purpose — they really are the same element rendered once.
+ */
+
+:root {
+  --ink: #101b33;
+  --ink-soft: #33405c;
+  --paper: #f4f1e6;
+  --paper-dim: #e8e3d4;
+  --brass: #a9843c;
+  --brass-soft: #d8c79a;
+  --stamp: #b5402f;
+  --stamp-soft: #3a2420;
+  --line: rgba(16, 27, 51, 0.14);
+  --good: #6fcf7c;
+  --radius-card: 3px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Inter", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+.serif {
+  font-family: "Fraunces", serif;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font-family: inherit;
+}
+
+/* ---------- NAV (shared component) ---------- */
+nav.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(16, 27, 51, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+nav.topbar .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--brass-soft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  color: var(--brass-soft);
+  flex-shrink: 0;
+}
+.navlinks {
+  display: flex;
+  gap: 34px;
+  font-size: 0.92rem;
+  color: #c9cfdd;
+}
+.navlinks a:hover {
+  color: var(--paper);
+}
+.navlinks a.current {
+  color: var(--paper);
+  border-bottom: 1px solid var(--brass-soft);
+  padding-bottom: 4px;
+}
+.nav-cta {
+  border: 1px solid var(--brass-soft);
+  color: var(--paper);
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  font-family: "IBM Plex Mono", monospace;
+  cursor: pointer;
+  background: transparent;
+}
+.nav-cta:hover {
+  background: var(--brass-soft);
+  color: var(--ink);
+}
+
+/* ---------- Buttons (shared) ---------- */
+.btn-primary {
+  background: var(--stamp);
+  color: var(--paper);
+  padding: 14px 26px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.88rem;
+  border: 1px solid var(--stamp);
+  cursor: pointer;
+  display: inline-block;
+}
+.btn-primary:hover {
+  background: #943225;
+}
+.btn-ghost {
+  color: var(--paper);
+  font-size: 0.9rem;
+  border: none;
+  border-bottom: 1px solid var(--brass-soft);
+  padding-bottom: 2px;
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+}
+.btn-outline {
+  border: 1px solid var(--brass-soft);
+  color: var(--paper);
+  padding: 12px 22px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+  text-align: center;
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+}
+.btn-outline:hover {
+  background: var(--brass-soft);
+  color: var(--ink);
+}
+
+/* ---------- SECTION LABEL (shared shape, page-scoped spacing) ---------- */
+.section-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--brass-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.section-label .rule {
+  flex: 0 0 34px;
+  height: 1px;
+  background: var(--brass-soft);
+}
+h2.section-title {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 2.1rem;
+  color: var(--paper);
+  max-width: 20ch;
+  letter-spacing: -0.01em;
+}
+p.section-sub {
+  color: #c9cfdd;
+  max-width: 56ch;
+  margin-top: 14px;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* ---------- FOOTER (shared component) ---------- */
+footer {
+  padding: 56px 0;
+}
+footer .wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+footer .mono {
+  font-size: 0.76rem;
+  color: #8189a0;
+}
+footer .footlinks {
+  display: flex;
+  gap: 26px;
+  font-size: 0.82rem;
+  color: #b7becf;
+}
+
+/* ===========================================================================
+   HOME (web/mockups/aether-ai-landing.html)
+   =========================================================================== */
+
+[data-page="home"] header.hero {
+  padding: 96px 0 80px;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 64px;
+  align-items: center;
+}
+[data-page="home"] .eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+  color: var(--brass-soft);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+[data-page="home"] .eyebrow-row .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+}
+[data-page="home"] h1.hero-title {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 3.4rem;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+  max-width: 11.5ch;
+}
+[data-page="home"] h1.hero-title em {
+  font-style: italic;
+  color: var(--brass-soft);
+  font-weight: 500;
+}
+[data-page="home"] p.hero-sub {
+  margin-top: 24px;
+  font-size: 1.08rem;
+  color: #c9cfdd;
+  max-width: 46ch;
+  line-height: 1.6;
+}
+[data-page="home"] .hero-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 36px;
+  align-items: center;
+}
+
+[data-page="home"] .id-card {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  padding: 26px 26px 22px;
+  position: relative;
+  transform: rotate(1.4deg);
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--paper-dim);
+}
+[data-page="home"] .id-card::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  width: 52px;
+  height: 20px;
+  background: rgba(244, 241, 230, 0.28);
+  border-radius: 2px;
+}
+[data-page="home"] .id-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+[data-page="home"] .id-top .mono {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+[data-page="home"] .id-status {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  padding: 3px 8px;
+  border: 1px solid var(--stamp);
+  color: var(--stamp);
+  transform: rotate(-6deg);
+  letter-spacing: 0.05em;
+}
+[data-page="home"] .id-photo {
+  width: 100%;
+  height: 150px;
+  background: repeating-linear-gradient(135deg, #ded7bc 0 2px, #e6e0ca 2px 10px);
+  border: 1px solid var(--paper-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fraunces", serif;
+  font-size: 2.6rem;
+  color: var(--brass);
+  margin-bottom: 16px;
+}
+[data-page="home"] .id-name {
+  font-family: "Fraunces", serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+[data-page="home"] .id-role {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+[data-page="home"] .id-meta {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 0;
+  font-size: 0.74rem;
+}
+[data-page="home"] .id-meta .label {
+  color: var(--ink-soft);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+}
+[data-page="home"] .id-meta .val {
+  font-weight: 500;
+}
+
+[data-page="home"] section.roster {
+  padding: 96px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .roster-grid {
+  margin-top: 52px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(244, 241, 230, 0.14);
+  border: 1px solid rgba(244, 241, 230, 0.14);
+}
+[data-page="home"] .role-card {
+  background: var(--ink);
+  padding: 26px 22px;
+  min-height: 198px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: background 0.2s ease;
+}
+[data-page="home"] .role-card:hover {
+  background: #182545;
+}
+[data-page="home"] .role-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+[data-page="home"] .role-code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--brass-soft);
+  letter-spacing: 0.04em;
+}
+[data-page="home"] .role-pill {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  padding: 3px 7px;
+  border-radius: 20px;
+  border: 1px solid rgba(244, 241, 230, 0.3);
+  color: #c9cfdd;
+}
+[data-page="home"] .role-pill.active {
+  border-color: var(--good);
+  color: var(--good);
+}
+[data-page="home"] .role-name {
+  font-family: "Fraunces", serif;
+  font-size: 1.28rem;
+  margin-top: 20px;
+  color: var(--paper);
+}
+[data-page="home"] .role-duty {
+  font-size: 0.86rem;
+  color: #b7becf;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+[data-page="home"] .roster-footnote {
+  margin-top: 22px;
+  font-size: 0.86rem;
+  color: #8189a0;
+}
+
+[data-page="home"] .tilt {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+[data-page="home"] section.demo {
+  padding: 96px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .demo-layout {
+  margin-top: 44px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 28px;
+  align-items: start;
+}
+[data-page="home"] .picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+[data-page="home"] .picker-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(244, 241, 230, 0.16);
+  border-radius: 3px;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+}
+[data-page="home"] .picker-card:hover {
+  background: rgba(244, 241, 230, 0.05);
+}
+[data-page="home"] .picker-card.selected {
+  border-color: var(--brass-soft);
+  background: rgba(216, 199, 154, 0.08);
+}
+[data-page="home"] .picker-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+[data-page="home"] .picker-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+[data-page="home"] .picker-scenario {
+  font-size: 0.76rem;
+  color: #b7becf;
+  margin-top: 2px;
+}
+
+[data-page="home"] .demo-frame {
+  background: var(--paper);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--paper-dim);
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+}
+[data-page="home"] .demo-head {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+[data-page="home"] .demo-head-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--brass-soft);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+[data-page="home"] .demo-head-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--paper);
+}
+[data-page="home"] .demo-head-status {
+  font-size: 0.68rem;
+  color: #8fe0a4;
+  font-family: "IBM Plex Mono", monospace;
+}
+[data-page="home"] .demo-badge {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  color: var(--brass-soft);
+  border: 1px solid var(--brass-soft);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+[data-page="home"] .demo-badge.live {
+  color: var(--good);
+  border-color: var(--good);
+}
+[data-page="home"] .demo-body {
+  flex: 1;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--ink);
+  min-height: 280px;
+  overflow-y: auto;
+}
+[data-page="home"] .demo-msg {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: demoIn 0.35s ease forwards;
+}
+[data-page="home"] .demo-msg.bot {
+  background: var(--paper-dim);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+[data-page="home"] .demo-msg.user {
+  background: var(--ink);
+  color: var(--paper);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+[data-page="home"] .demo-msg.tag {
+  align-self: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.64rem;
+  color: var(--ink-soft);
+  background: transparent;
+  padding: 2px;
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+@keyframes demoIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+[data-page="home"] .demo-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-top: 1px solid var(--paper-dim);
+  background: var(--paper-dim);
+}
+[data-page="home"] .demo-foot .mono {
+  font-size: 0.66rem;
+  color: var(--ink-soft);
+}
+[data-page="home"] .demo-replay {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--stamp);
+  border-bottom: 1px solid var(--stamp);
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  cursor: pointer;
+}
+[data-page="home"] .demo-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--paper-dim);
+}
+[data-page="home"] .demo-input-row input {
+  flex: 1;
+  border: 1px solid var(--paper-dim);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-family: "Inter";
+}
+[data-page="home"] .demo-input-row button {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+[data-page="home"] .demo-input-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-page="home"] section.onboarding {
+  padding: 96px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+  background: var(--ink);
+}
+[data-page="home"] .steps {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+[data-page="home"] .step {
+  padding: 0 28px 0 0;
+  border-left: 1px solid rgba(244, 241, 230, 0.16);
+  padding-left: 24px;
+}
+[data-page="home"] .step:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+[data-page="home"] .step-num {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--brass-soft);
+  font-size: 0.78rem;
+}
+[data-page="home"] .step-title {
+  font-family: "Fraunces", serif;
+  font-size: 1.18rem;
+  margin-top: 14px;
+  color: var(--paper);
+}
+[data-page="home"] .step-desc {
+  font-size: 0.86rem;
+  color: #b7becf;
+  margin-top: 10px;
+  line-height: 1.55;
+}
+
+[data-page="home"] section.trust {
+  padding: 90px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+  background: var(--paper);
+  color: var(--ink);
+}
+[data-page="home"] section.trust .section-label {
+  color: var(--stamp);
+}
+[data-page="home"] section.trust .section-label .rule {
+  background: var(--stamp);
+}
+[data-page="home"] section.trust h2.section-title {
+  color: var(--ink);
+}
+[data-page="home"] section.trust p.section-sub {
+  color: var(--ink-soft);
+}
+[data-page="home"] .trust-grid {
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+[data-page="home"] .trust-item {
+  border-top: 2px solid var(--ink);
+  padding-top: 16px;
+}
+[data-page="home"] .trust-item .mono {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.03em;
+}
+[data-page="home"] .trust-item p {
+  margin-top: 10px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+[data-page="home"] section.industries {
+  padding: 70px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .industries-note {
+  font-size: 0.86rem;
+  color: #b7becf;
+  max-width: 56ch;
+  margin-top: 10px;
+}
+[data-page="home"] .industry-row {
+  margin-top: 34px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+[data-page="home"] .industry-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border: 1px solid rgba(244, 241, 230, 0.16);
+  border-radius: 30px;
+  font-size: 0.86rem;
+  color: #d8dbe6;
+}
+[data-page="home"] .industry-chip .ic {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brass-soft);
+}
+
+[data-page="home"] section.pricing-teaser {
+  padding: 96px 0;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .pricing-teaser-grid {
+  margin-top: 52px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(244, 241, 230, 0.14);
+  border: 1px solid rgba(244, 241, 230, 0.14);
+}
+[data-page="home"] .pay-card {
+  background: var(--ink);
+  padding: 34px 28px;
+}
+[data-page="home"] .pay-card.highlight {
+  background: #182545;
+}
+[data-page="home"] .pay-role {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--brass-soft);
+}
+[data-page="home"] .pay-amount {
+  font-family: "Fraunces", serif;
+  font-size: 2.2rem;
+  margin-top: 14px;
+  color: var(--paper);
+}
+[data-page="home"] .pay-amount span {
+  font-family: "Inter";
+  font-size: 0.9rem;
+  color: #b7becf;
+  font-weight: 400;
+}
+[data-page="home"] .pay-desc {
+  font-size: 0.86rem;
+  color: #b7becf;
+  margin-top: 12px;
+  line-height: 1.55;
+  min-height: 64px;
+}
+[data-page="home"] .pay-cta {
+  display: inline-block;
+  margin-top: 20px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--brass-soft);
+  color: var(--paper);
+  padding-bottom: 2px;
+}
+[data-page="home"] .pricing-teaser-more {
+  text-align: center;
+  margin-top: 10px;
+}
+
+[data-page="home"] section.final-cta {
+  padding: 110px 0;
+  text-align: left;
+  border-bottom: 1px solid rgba(244, 241, 230, 0.12);
+}
+[data-page="home"] .cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+[data-page="home"] .final-cta h2 {
+  font-family: "Fraunces", serif;
+  font-size: 2.5rem;
+  max-width: 14ch;
+  color: var(--paper);
+  font-weight: 500;
+  line-height: 1.14;
+}
+[data-page="home"] .final-cta .actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+/* ---- Pre-sales chat widget (site-wide, home page only per the mockup) ---- */
+.site-chat-launcher {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 60;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--stamp);
+  color: var(--paper);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fraunces", serif;
+  font-size: 1.4rem;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+.site-chat-launcher .pulse {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--good);
+  border: 2px solid var(--ink);
+}
+.site-chat-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  z-index: 60;
+  width: 328px;
+  max-height: 460px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 10px;
+  box-shadow: 0 24px 60px -14px rgba(0, 0, 0, 0.55);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--paper-dim);
+}
+.site-chat-panel.open {
+  display: flex;
+}
+.site-chat-head {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.site-chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brass-soft);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+}
+.site-chat-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.site-chat-sub {
+  font-size: 0.66rem;
+  color: #8fe0a4;
+  font-family: "IBM Plex Mono", monospace;
+}
+.site-chat-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--paper);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.site-chat-body {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+}
+.site-msg {
+  max-width: 82%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.site-msg.bot {
+  background: var(--paper-dim);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+.site-msg.user {
+  background: var(--ink);
+  color: var(--paper);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+.site-chat-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 14px 14px;
+}
+.site-chat-options button {
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--paper-dim);
+  background: var(--paper);
+  font-family: "Inter";
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.site-chat-options button:hover {
+  background: var(--paper-dim);
+}
+.site-chat-foot {
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  color: var(--ink-soft);
+  padding: 7px;
+  background: var(--paper-dim);
+}
+
+@media (max-width: 880px) {
+  [data-page="home"] .hero-grid,
+  [data-page="home"] .cta-inner {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  [data-page="home"] .roster-grid,
+  [data-page="home"] .steps,
+  [data-page="home"] .pricing-teaser-grid,
+  [data-page="home"] .trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  [data-page="home"] .steps .step {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid rgba(244, 241, 230, 0.16);
+    padding-top: 20px;
+  }
+  [data-page="home"] h1.hero-title {
+    font-size: 2.4rem;
+  }
+  [data-page="home"] .demo-layout {
+    grid-template-columns: 1fr;
+  }
+  .navlinks {
+    display: none;
+  }
+  .site-chat-panel {
+    width: calc(100vw - 32px);
+    right: 16px;
+  }
+}
+
+/* ===========================================================================
+   PRICING (web/mockups/aether-ai-pricing.html)
+   =========================================================================== */
+
+[data-page="pricing"] header.page-head {
+  padding: 80px 0 56px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+[data-page="pricing"] .eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--brass-soft);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+[data-page="pricing"] .eyebrow-row .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+}
+[data-page="pricing"] h1.page-title {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 2.9rem;
+  letter-spacing: -0.01em;
+  max-width: 16ch;
+}
+[data-page="pricing"] p.page-sub {
+  margin-top: 18px;
+  font-size: 1.05rem;
+  color: #c9cfdd;
+  max-width: 60ch;
+  line-height: 1.65;
+}
+
+[data-page="pricing"] section.plans {
+  padding: 76px 0 40px;
+  border-bottom: 1px solid var(--line);
+}
+[data-page="pricing"] .toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 44px;
+}
+[data-page="pricing"] .toggle-pill {
+  display: flex;
+  background: rgba(244, 241, 230, 0.08);
+  border-radius: 20px;
+  padding: 3px;
+}
+[data-page="pricing"] .toggle-pill button {
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 0.84rem;
+  background: transparent;
+  border: none;
+  color: #c9cfdd;
+  font-family: "Inter";
+  cursor: pointer;
+}
+[data-page="pricing"] .toggle-pill button.active {
+  background: var(--paper);
+  color: var(--ink);
+}
+[data-page="pricing"] .save-badge {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--good);
+  border: 1px solid var(--good);
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+[data-page="pricing"] .plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+[data-page="pricing"] .plan-card {
+  background: var(--ink);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+}
+[data-page="pricing"] .plan-card.feat {
+  background: #182545;
+}
+[data-page="pricing"] .plan-name {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  color: var(--brass-soft);
+  letter-spacing: 0.03em;
+}
+[data-page="pricing"] .plan-price {
+  font-family: "Fraunces", serif;
+  font-size: 2.3rem;
+  margin-top: 14px;
+  color: var(--paper);
+}
+[data-page="pricing"] .plan-price span {
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: #b7becf;
+  font-family: "Inter";
+}
+[data-page="pricing"] .plan-desc {
+  font-size: 0.86rem;
+  color: #b7becf;
+  margin-top: 12px;
+  min-height: 44px;
+  line-height: 1.55;
+}
+[data-page="pricing"] .split-badges {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0;
+}
+[data-page="pricing"] .split-badge {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.66rem;
+  padding: 4px 9px;
+  border-radius: 20px;
+}
+[data-page="pricing"] .split-badge.ai {
+  background: rgba(244, 241, 230, 0.1);
+  color: #c9cfdd;
+}
+[data-page="pricing"] .split-badge.human {
+  background: var(--stamp-soft);
+  color: #e19487;
+}
+[data-page="pricing"] .plan-list {
+  list-style: none;
+  margin: 16px 0 24px;
+  flex: 1;
+}
+[data-page="pricing"] .plan-list li {
+  font-size: 0.86rem;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 9px;
+  color: #d8dbe6;
+}
+[data-page="pricing"] .plan-list li:first-child {
+  border-top: none;
+}
+[data-page="pricing"] .plan-list li::before {
+  content: "—";
+  color: var(--brass-soft);
+  flex-shrink: 0;
+}
+
+[data-page="pricing"] section.compare {
+  padding: 76px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-page="pricing"] table.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+[data-page="pricing"] table.compare-table th,
+[data-page="pricing"] table.compare-table td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+[data-page="pricing"] table.compare-table th {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--brass-soft);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+[data-page="pricing"] table.compare-table th:first-child {
+  text-align: left;
+}
+[data-page="pricing"] table.compare-table td:not(:first-child) {
+  text-align: center;
+  color: #d8dbe6;
+}
+[data-page="pricing"] table.compare-table tr:last-child td {
+  border-bottom: none;
+}
+[data-page="pricing"] table.compare-table td:first-child {
+  color: #b7becf;
+}
+
+[data-page="pricing"] section.faq {
+  padding: 76px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-page="pricing"] .faq-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 48px;
+}
+[data-page="pricing"] .faq-item h3 {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+[data-page="pricing"] .faq-item p {
+  font-size: 0.9rem;
+  color: #c9cfdd;
+  line-height: 1.6;
+}
+[data-page="pricing"] .faq-title {
+  font-family: "Fraunces", serif;
+  font-weight: 500;
+  font-size: 2rem;
+  max-width: 20ch;
+}
+
+[data-page="pricing"] section.final-cta {
+  padding: 96px 0;
+  border-bottom: 1px solid var(--line);
+}
+[data-page="pricing"] .cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+[data-page="pricing"] .final-cta h2 {
+  font-family: "Fraunces", serif;
+  font-size: 2.2rem;
+  max-width: 14ch;
+  font-weight: 500;
+  line-height: 1.16;
+}
+[data-page="pricing"] .final-cta .actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* ---- Lead capture modal (behind the pricing CTAs, DEC-0027 / FR-3) ---- */
+.lead-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 27, 51, 0.6);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.lead-modal {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  width: 440px;
+  max-width: 100%;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 26px;
+}
+.lead-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.lead-modal-title {
+  font-family: "Fraunces", serif;
+  font-size: 1.2rem;
+}
+.lead-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--ink);
+  padding: 6px 10px;
+}
+.lead-modal-sub {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.lead-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.lead-form-field label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+.lead-form-field input,
+.lead-form-field textarea {
+  border: 1px solid var(--paper-dim);
+  border-radius: 3px;
+  padding: 9px 11px;
+  font-family: "Inter";
+  font-size: 0.87rem;
+  background: #fff;
+  color: var(--ink);
+}
+.lead-form-field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+.lead-form-error {
+  font-size: 0.82rem;
+  color: var(--stamp);
+  margin-bottom: 12px;
+}
+.lead-form-success {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  padding: 8px 0 4px;
+}
+
+@media (max-width: 880px) {
+  [data-page="pricing"] .plans-grid,
+  [data-page="pricing"] .faq-grid {
+    grid-template-columns: 1fr;
+  }
+  [data-page="pricing"] h1.page-title {
+    font-size: 2.2rem;
+  }
+}

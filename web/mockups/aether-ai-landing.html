@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aether AI — Your Digital Workforce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101B33;
+    --ink-soft:#33405C;
+    --paper:#F4F1E6;
+    --paper-dim:#E8E3D4;
+    --brass:#A9843C;
+    --brass-soft:#D8C79A;
+    --stamp:#B5402F;
+    --line:rgba(16,27,51,0.14);
+    --radius-card: 3px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .serif{font-family:'Fraunces', serif;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+  a{color:inherit; text-decoration:none;}
+
+  /* ---------- NAV ---------- */
+  nav.topbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(16,27,51,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid rgba(244,241,230,0.12);
+  }
+  nav.topbar .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:68px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.15rem; letter-spacing:0.01em;
+  }
+  .brand-mark{
+    width:26px; height:26px; border:1.5px solid var(--brass-soft); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:0.62rem; color:var(--brass-soft);
+  }
+  .navlinks{display:flex; gap:34px; font-size:0.92rem; color:#C9CFDD;}
+  .navlinks a:hover{color:var(--paper);}
+  .nav-cta{
+    border:1px solid var(--brass-soft); color:var(--paper);
+    padding:9px 18px; font-size:0.88rem; font-family:'IBM Plex Mono', monospace;
+  }
+  .nav-cta:hover{background:var(--brass-soft); color:var(--ink);}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:96px 0 80px;
+    border-bottom:1px solid rgba(244,241,230,0.12);
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:64px; align-items:center;
+  }
+  .eyebrow-row{
+    display:flex; align-items:center; gap:12px; margin-bottom:26px;
+    color:var(--brass-soft); font-family:'IBM Plex Mono', monospace; font-size:0.82rem;
+  }
+  .eyebrow-row .dot{width:6px; height:6px; border-radius:50%; background:#6FCF7C;}
+  h1.hero-title{
+    font-family:'Fraunces', serif; font-weight:500; font-size:3.4rem; line-height:1.08;
+    letter-spacing:-0.01em; color:var(--paper); max-width:11.5ch;
+  }
+  h1.hero-title em{font-style:italic; color:var(--brass-soft); font-weight:500;}
+  p.hero-sub{
+    margin-top:24px; font-size:1.08rem; color:#C9CFDD; max-width:46ch; line-height:1.6;
+  }
+  .hero-actions{display:flex; gap:16px; margin-top:36px; align-items:center;}
+  .btn-primary{
+    background:var(--stamp); color:var(--paper); padding:14px 26px;
+    font-family:'IBM Plex Mono', monospace; font-size:0.88rem; border:1px solid var(--stamp);
+  }
+  .btn-primary:hover{background:#943225;}
+  .btn-ghost{
+    color:var(--paper); font-size:0.9rem; border-bottom:1px solid var(--brass-soft); padding-bottom:2px;
+  }
+
+  /* ID card visual */
+  .id-card{
+    background:var(--paper); color:var(--ink); border-radius:var(--radius-card);
+    padding:26px 26px 22px; position:relative; transform:rotate(1.4deg);
+    box-shadow:0 24px 50px -18px rgba(0,0,0,0.55);
+    border:1px solid var(--paper-dim);
+  }
+  .id-card::before{
+    content:""; position:absolute; top:-10px; left:24px; width:52px; height:20px;
+    background:rgba(244,241,230,0.28); border-radius:2px;
+  }
+  .id-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:1px dashed var(--line); padding-bottom:14px; margin-bottom:14px;
+  }
+  .id-top .mono{font-size:0.68rem; letter-spacing:0.04em; color:var(--ink-soft);}
+  .id-status{
+    font-family:'IBM Plex Mono', monospace; font-size:0.66rem; padding:3px 8px;
+    border:1px solid var(--stamp); color:var(--stamp); transform:rotate(-6deg);
+    letter-spacing:0.05em;
+  }
+  .id-photo{
+    width:100%; height:150px; background:
+      repeating-linear-gradient(135deg, #DED7BC 0 2px, #E6E0CA 2px 10px);
+    border:1px solid var(--paper-dim); display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size:2.6rem; color:var(--brass); margin-bottom:16px;
+  }
+  .id-name{font-family:'Fraunces', serif; font-size:1.3rem; font-weight:600;}
+  .id-role{font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--ink-soft); margin-top:2px;}
+  .id-meta{margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:10px 0; font-size:0.74rem;}
+  .id-meta .label{color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; font-size:0.66rem;}
+  .id-meta .val{font-weight:500;}
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-label{
+    font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--brass-soft);
+    display:flex; align-items:center; gap:12px; margin-bottom:14px;
+  }
+  .section-label .rule{flex:0 0 34px; height:1px; background:var(--brass-soft);}
+  h2.section-title{
+    font-family:'Fraunces', serif; font-weight:500; font-size:2.1rem; color:var(--paper);
+    max-width:20ch; letter-spacing:-0.01em;
+  }
+  p.section-sub{color:#C9CFDD; max-width:56ch; margin-top:14px; font-size:1rem; line-height:1.65;}
+
+  /* ---------- ROSTER ---------- */
+  section.roster{padding:96px 0; border-bottom:1px solid rgba(244,241,230,0.12);}
+  .roster-grid{
+    margin-top:52px; display:grid; grid-template-columns:repeat(4, 1fr); gap:1px;
+    background:rgba(244,241,230,0.14); border:1px solid rgba(244,241,230,0.14);
+  }
+  .role-card{
+    background:var(--ink); padding:26px 22px; min-height:198px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    transition:background 0.2s ease;
+  }
+  .role-card:hover{background:#182545;}
+  .role-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .role-code{font-family:'IBM Plex Mono', monospace; font-size:0.68rem; color:var(--brass-soft); letter-spacing:0.04em;}
+  .role-pill{
+    font-family:'IBM Plex Mono', monospace; font-size:0.62rem; padding:3px 7px; border-radius:20px;
+    border:1px solid rgba(244,241,230,0.3); color:#C9CFDD;
+  }
+  .role-pill.active{border-color:#6FCF7C; color:#6FCF7C;}
+  .role-name{font-family:'Fraunces', serif; font-size:1.28rem; margin-top:20px; color:var(--paper);}
+  .role-duty{font-size:0.86rem; color:#B7BECF; margin-top:8px; line-height:1.5;}
+
+  /* ---------- ONBOARDING ---------- */
+  section.onboarding{padding:96px 0; border-bottom:1px solid rgba(244,241,230,0.12); background:var(--ink);}
+  .steps{margin-top:56px; display:grid; grid-template-columns:repeat(4,1fr); gap:0;}
+  .step{padding:0 28px 0 0; border-left:1px solid rgba(244,241,230,0.16); padding-left:24px;}
+  .step:first-child{border-left:none; padding-left:0;}
+  .step-num{font-family:'IBM Plex Mono', monospace; color:var(--brass-soft); font-size:0.78rem;}
+  .step-title{font-family:'Fraunces', serif; font-size:1.18rem; margin-top:14px; color:var(--paper);}
+  .step-desc{font-size:0.86rem; color:#B7BECF; margin-top:10px; line-height:1.55;}
+
+  /* ---------- TRUST BAND ---------- */
+  section.trust{padding:90px 0; border-bottom:1px solid rgba(244,241,230,0.12); background:var(--paper); color:var(--ink);}
+  section.trust .section-label{color:var(--stamp);}
+  section.trust .section-label .rule{background:var(--stamp);}
+  section.trust h2.section-title{color:var(--ink);}
+  section.trust p.section-sub{color:var(--ink-soft);}
+  .trust-grid{margin-top:48px; display:grid; grid-template-columns:repeat(3,1fr); gap:40px;}
+  .trust-item{border-top:2px solid var(--ink); padding-top:16px;}
+  .trust-item .mono{font-size:0.7rem; color:var(--ink-soft); letter-spacing:0.03em;}
+  .trust-item p{margin-top:10px; font-size:0.92rem; line-height:1.55; color:var(--ink-soft);}
+
+  /* ---------- PRICING ---------- */
+  section.pricing{padding:96px 0; border-bottom:1px solid rgba(244,241,230,0.12);}
+  .pricing-grid{margin-top:52px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(244,241,230,0.14); border:1px solid rgba(244,241,230,0.14);}
+  .pay-card{background:var(--ink); padding:34px 28px;}
+  .pay-card.highlight{background:#182545;}
+  .pay-role{font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--brass-soft);}
+  .pay-amount{font-family:'Fraunces', serif; font-size:2.2rem; margin-top:14px; color:var(--paper);}
+  .pay-amount span{font-family:'Inter'; font-size:0.9rem; color:#B7BECF; font-weight:400;}
+  .pay-desc{font-size:0.86rem; color:#B7BECF; margin-top:12px; line-height:1.55; min-height:64px;}
+  .pay-cta{
+    display:inline-block; margin-top:20px; font-family:'IBM Plex Mono', monospace; font-size:0.8rem;
+    border-bottom:1px solid var(--brass-soft); color:var(--paper); padding-bottom:2px;
+  }
+
+  /* ---------- CTA ---------- */
+  section.final-cta{padding:110px 0; text-align:left; border-bottom:1px solid rgba(244,241,230,0.12);}
+  .cta-inner{display:flex; align-items:center; justify-content:space-between; gap:40px;}
+  .final-cta h2{font-family:'Fraunces', serif; font-size:2.5rem; max-width:14ch; color:var(--paper); font-weight:500; line-height:1.14;}
+  .final-cta .actions{display:flex; flex-direction:column; align-items:flex-start; gap:14px; flex-shrink:0;}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:56px 0;}
+  footer .wrap{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;}
+  footer .mono{font-size:0.76rem; color:#8189A0;}
+  footer .footlinks{display:flex; gap:26px; font-size:0.82rem; color:#B7BECF;}
+
+  @media (max-width:880px){
+    .hero-grid, .cta-inner{grid-template-columns:1fr; display:flex; flex-direction:column;}
+    .roster-grid, .steps, .pricing-grid, .trust-grid{grid-template-columns:repeat(2,1fr);}
+    .steps .step{border-left:none; padding-left:0; border-top:1px solid rgba(244,241,230,0.16); padding-top:20px;}
+    h1.hero-title{font-size:2.4rem;}
+    .navlinks{display:none;}
+  }
+
+  /* ---------- TILT (hero card + role cards) ---------- */
+  .tilt{ transition: transform 0.15s ease-out; transform-style: preserve-3d; will-change: transform; }
+
+  /* ---------- TRY-BEFORE-YOU-HIRE DEMO ---------- */
+  section.demo{padding:96px 0; border-bottom:1px solid rgba(244,241,230,0.12);}
+  .demo-layout{margin-top:44px; display:grid; grid-template-columns:0.85fr 1.15fr; gap:28px; align-items:start;}
+  .picker-list{display:flex; flex-direction:column; gap:10px;}
+  .picker-card{
+    display:flex; align-items:center; gap:14px; padding:16px 18px; border:1px solid rgba(244,241,230,0.16);
+    border-radius:3px; cursor:pointer; background:transparent;
+  }
+  .picker-card:hover{background:rgba(244,241,230,0.05);}
+  .picker-card.selected{border-color:var(--brass-soft); background:rgba(216,199,154,0.08);}
+  .picker-avatar{width:38px; height:38px; border-radius:3px; background:var(--paper); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-weight:600; flex-shrink:0;}
+  .picker-name{font-weight:600; font-size:0.92rem;}
+  .picker-scenario{font-size:0.76rem; color:#B7BECF; margin-top:2px;}
+
+  .demo-frame{background:var(--paper); border-radius:6px; overflow:hidden; border:1px solid var(--paper-dim); min-height:440px; display:flex; flex-direction:column;}
+  .demo-head{background:var(--ink); color:var(--paper); padding:14px 18px; display:flex; align-items:center; gap:10px;}
+  .demo-head-avatar{width:30px; height:30px; border-radius:50%; background:var(--brass-soft); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:0.85rem;}
+  .demo-head-name{font-size:0.85rem; font-weight:600; color:var(--paper);}
+  .demo-head-status{font-size:0.68rem; color:#8FE0A4; font-family:'IBM Plex Mono', monospace;}
+  .demo-badge{margin-left:auto; font-family:'IBM Plex Mono', monospace; font-size:0.62rem; color:var(--brass-soft); border:1px solid var(--brass-soft); padding:3px 8px; border-radius:20px;}
+  .demo-body{flex:1; padding:18px; display:flex; flex-direction:column; gap:12px; color:var(--ink); min-height:280px;}
+  .demo-msg{max-width:78%; padding:10px 14px; border-radius:10px; font-size:0.85rem; line-height:1.5; opacity:0; transform:translateY(6px); animation:demoIn 0.35s ease forwards;}
+  .demo-msg.bot{background:var(--paper-dim); align-self:flex-start; border-bottom-left-radius:2px;}
+  .demo-msg.user{background:var(--ink); color:var(--paper); align-self:flex-end; border-bottom-right-radius:2px;}
+  .demo-msg.tag{align-self:center; font-family:'IBM Plex Mono', monospace; font-size:0.64rem; color:var(--ink-soft); background:transparent; padding:2px;}
+  @keyframes demoIn{ to{ opacity:1; transform:translateY(0);} }
+  .demo-foot{display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-top:1px solid var(--paper-line); background:var(--paper-dim);}
+  .demo-foot .mono{font-size:0.66rem; color:var(--ink-soft);}
+  .demo-replay{font-family:'IBM Plex Mono', monospace; font-size:0.74rem; color:var(--stamp); border-bottom:1px solid var(--stamp);}
+
+  /* ---------- INDUSTRIES ---------- */
+  section.industries{padding:70px 0; border-bottom:1px solid rgba(244,241,230,0.12);}
+  .industries-note{font-size:0.86rem; color:#B7BECF; max-width:56ch; margin-top:10px;}
+  .industry-row{margin-top:34px; display:flex; flex-wrap:wrap; gap:12px;}
+  .industry-chip{
+    display:flex; align-items:center; gap:9px; padding:12px 18px; border:1px solid rgba(244,241,230,0.16);
+    border-radius:30px; font-size:0.86rem; color:#D8DBE6;
+  }
+  .industry-chip .ic{width:8px; height:8px; border-radius:50%; background:var(--brass-soft);}
+
+  /* ---------- PRE-SALES CHAT WIDGET (site-wide) ---------- */
+  .site-chat-launcher{
+    position:fixed; bottom:24px; right:24px; z-index:60; width:58px; height:58px; border-radius:50%;
+    background:var(--stamp); color:var(--paper); border:none; display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size:1.4rem; box-shadow:0 14px 30px -10px rgba(0,0,0,0.55); cursor:pointer;
+  }
+  .site-chat-launcher .pulse{position:absolute; top:-3px; right:-3px; width:12px; height:12px; border-radius:50%; background:#6FCF7C; border:2px solid var(--ink);}
+  .site-chat-panel{
+    position:fixed; bottom:96px; right:24px; z-index:60; width:328px; max-height:460px; background:var(--paper);
+    color:var(--ink); border-radius:10px; box-shadow:0 24px 60px -14px rgba(0,0,0,0.55); display:none; flex-direction:column; overflow:hidden;
+    border:1px solid var(--paper-dim);
+  }
+  .site-chat-panel.open{display:flex;}
+  .site-chat-head{background:var(--ink); color:var(--paper); padding:14px 16px; display:flex; align-items:center; gap:10px;}
+  .site-chat-avatar{width:32px; height:32px; border-radius:50%; background:var(--brass-soft); color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600;}
+  .site-chat-title{font-size:0.86rem; font-weight:600;}
+  .site-chat-sub{font-size:0.66rem; color:#8FE0A4; font-family:'IBM Plex Mono', monospace;}
+  .site-chat-close{margin-left:auto; background:transparent; border:none; color:var(--paper); font-size:1rem; cursor:pointer;}
+  .site-chat-body{flex:1; padding:14px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; max-height:280px;}
+  .site-msg{max-width:82%; padding:9px 12px; border-radius:10px; font-size:0.8rem; line-height:1.45;}
+  .site-msg.bot{background:var(--paper-dim); align-self:flex-start; border-bottom-left-radius:2px;}
+  .site-msg.user{background:var(--ink); color:var(--paper); align-self:flex-end; border-bottom-right-radius:2px;}
+  .site-chat-options{display:flex; flex-direction:column; gap:6px; padding:0 14px 14px;}
+  .site-chat-options button{
+    text-align:left; padding:9px 12px; border-radius:6px; border:1px solid var(--paper-line); background:var(--paper);
+    font-family:'Inter'; font-size:0.8rem; color:var(--ink); cursor:pointer;
+  }
+  .site-chat-options button:hover{background:var(--paper-dim);}
+  .site-chat-foot{text-align:center; font-family:'IBM Plex Mono', monospace; font-size:0.6rem; color:var(--ink-soft); padding:7px; background:var(--paper-dim);}
+
+  @media (max-width:880px){
+    .demo-layout{grid-template-columns:1fr;}
+    .site-chat-panel{width:calc(100vw - 32px); right:16px;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark">Æ</span>Aether AI</div>
+    <div class="navlinks">
+      <a href="#roster">Roster</a>
+      <a href="#demo">Try it</a>
+      <a href="#onboarding">How it works</a>
+      <a href="aether-ai-pricing.html">Pricing</a>
+    </div>
+    <a class="nav-cta" href="aether-ai-pricing.html">Hire now</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow-row"><span class="dot"></span>Built for small &amp; growing teams</div>
+      <h1 class="hero-title">Hire your next employee. <em>They just happen to be AI.</em></h1>
+      <p class="hero-sub">Too small for a full front desk, too busy to miss another call — Aether AI is a digital workforce sized for small and medium businesses. Each hire has a job title, a reporting line, and a record of everything they've done. Bring one on in an afternoon, no IT team required.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#roster">Meet the roster</a>
+        <a class="btn-ghost" href="#onboarding">See how onboarding works</a>
+      </div>
+    </div>
+    <div class="id-card">
+      <div class="id-top">
+        <div class="mono">AETHER AI · PERSONNEL FILE<br>NO. AR-0001</div>
+        <div class="id-status">ACTIVE</div>
+      </div>
+      <div class="id-photo">R</div>
+      <div class="id-name">Receptionist</div>
+      <div class="id-role">Front desk · answers, books, escalates</div>
+      <div class="id-meta">
+        <div><div class="label">CLOCKED IN</div><div class="val">24 / 7</div></div>
+        <div><div class="label">CHANNEL</div><div class="val">Web + Phone</div></div>
+        <div><div class="label">ESCALATES TO</div><div class="val">You</div></div>
+        <div><div class="label">AUDIT LOG</div><div class="val">Full trail</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="roster" id="roster">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>THE ROSTER</div>
+    <h2 class="section-title">One team, eight desks, zero HR paperwork</h2>
+    <p class="section-sub">Every Digital Employee ships with a defined job — nothing invents facts about your business, and everything they do is logged, escalated, and reviewable. No hiring pipeline, no benefits, no desk to find.</p>
+
+    <div class="roster-grid">
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">AR-01</span><span class="role-pill active">ACTIVE</span></div>
+        <div><div class="role-name">Receptionist</div><div class="role-duty">Answers, routes, and books — on the site and the phone line.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">AS-02</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Secretary</div><div class="role-duty">Calendars, follow-ups, and the paperwork no one wants to own.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">SR-03</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Sales Rep</div><div class="role-duty">Qualifies inbound leads and hands warm ones to your team.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">CS-04</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Support</div><div class="role-duty">Handles tickets, checks order status, knows when to escalate.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">HR-05</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">HR</div><div class="role-duty">Onboarding checklists, policy Q&A, time-off requests.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">FN-06</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Finance</div><div class="role-duty">Invoices, expense triage, and a running tab on cash flow.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">MK-07</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Marketing</div><div class="role-duty">Drafts campaigns, schedules posts, reports what worked.</div></div>
+      </div>
+      <div class="role-card">
+        <div class="role-top"><span class="role-code">OM-08</span><span class="role-pill">HIRING</span></div>
+        <div><div class="role-name">Ops Manager</div><div class="role-duty">Watches the rest of the team and flags what needs you.</div></div>
+      </div>
+    </div>
+    <p style="margin-top:22px; font-size:0.86rem; color:#8189A0;">The roster keeps growing — dev, design, and content roles are next in line, added as each one clears the same bar: does it do the job better, or at least as well, as a person could, with a low enough error rate to trust it.</p>
+  </div>
+</section>
+
+<section class="demo" id="demo">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>TRY BEFORE YOU HIRE</div>
+    <h2 class="section-title">See a shift before you commit to one</h2>
+    <p class="section-sub">Pick a role and watch a real scenario play out. No account, no card, no calls to real customers — just a preview of how the conversation actually goes.</p>
+
+    <div class="demo-layout">
+      <div class="picker-list">
+        <button class="picker-card selected" data-demo="reception" onclick="selectDemo('reception', this)">
+          <div class="picker-avatar">R</div>
+          <div><div class="picker-name">Receptionist</div><div class="picker-scenario">Scenario: after-hours booking request</div></div>
+        </button>
+        <button class="picker-card" data-demo="support" onclick="selectDemo('support', this)">
+          <div class="picker-avatar">S</div>
+          <div><div class="picker-name">Support</div><div class="picker-scenario">Scenario: a question outside its file</div></div>
+        </button>
+        <button class="picker-card" data-demo="sales" onclick="selectDemo('sales', this)">
+          <div class="picker-avatar">SR</div>
+          <div><div class="picker-name">Sales Rep</div><div class="picker-scenario">Scenario: qualifying an inbound lead</div></div>
+        </button>
+      </div>
+
+      <div class="demo-frame">
+        <div class="demo-head">
+          <div class="demo-head-avatar" id="demoAvatar">R</div>
+          <div><div class="demo-head-name" id="demoName">Receptionist</div><div class="demo-head-status">● Active now</div></div>
+          <span class="demo-badge">PREVIEW · SCRIPTED</span>
+        </div>
+        <div class="demo-body" id="demoBody"></div>
+        <div class="demo-foot">
+          <span class="mono">Not a live business — sample data only</span>
+          <a class="demo-replay" onclick="replayDemo()">Replay ↻</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="onboarding" id="onboarding">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>ONBOARDING</div>
+    <h2 class="section-title">Four steps, one afternoon</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Interview</div>
+        <div class="step-desc">Tell us the role, the facts they should know, and where the line to a human sits.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Train</div>
+        <div class="step-desc">We ground them in your business — hours, pricing, policies. Nothing outside that file.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Clock in</div>
+        <div class="step-desc">Drop them onto your site, phone line, or inbox. They start working the same day.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Manage</div>
+        <div class="step-desc">Every conversation is logged. Review, correct, and adjust their file any time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>WHY IT HOLDS UP</div>
+    <h2 class="section-title">You don't need to trust us blindly — you can check its work</h2>
+    <p class="section-sub">No IT department, no procurement process. Every reply is checked against what you told it, and everything it does is written down where you can see it.</p>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <div class="mono">GROUNDED ANSWERS</div>
+        <p>Every reply is checked against your business facts. If it doesn't know, it escalates instead of guessing — no made-up prices or policies.</p>
+      </div>
+      <div class="trust-item">
+        <div class="mono">FULL AUDIT TRAIL</div>
+        <p>Every conversation, decision, and escalation is logged. Spot-check it whenever you want, no dashboard training required.</p>
+      </div>
+      <div class="trust-item">
+        <div class="mono">YOUR DATA, FENCED</div>
+        <p>Row-level security keeps your records separate from every other business on the platform — nothing crosses between accounts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="industries">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>WHO IT'S BUILT FOR</div>
+    <h2 class="section-title">Built for the businesses that answer their own phones</h2>
+    <p class="industries-note">Aether is new — we're not going to invent a client count or logos we don't have. What we can tell you is the kind of business this is built for: appointment-driven, front-desk-heavy, too lean to staff every desk full time.</p>
+    <div class="industry-row">
+      <div class="industry-chip"><span class="ic"></span>Dental &amp; medical practices</div>
+      <div class="industry-chip"><span class="ic"></span>Home services (HVAC, plumbing, electrical)</div>
+      <div class="industry-chip"><span class="ic"></span>Legal &amp; professional services</div>
+      <div class="industry-chip"><span class="ic"></span>Salons &amp; wellness studios</div>
+      <div class="industry-chip"><span class="ic"></span>Local retail &amp; specialty shops</div>
+      <div class="industry-chip"><span class="ic"></span>Auto &amp; repair shops</div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>PAYROLL</div>
+    <h2 class="section-title">Pay a salary, not a software bill</h2>
+    <div class="pricing-grid">
+      <div class="pay-card">
+        <div class="pay-role">ESSENTIALS</div>
+        <div class="pay-amount">$X<span>/month</span></div>
+        <div class="pay-desc">One role, always on. Good starting point for a single front desk.</div>
+        <a class="pay-cta" href="aether-ai-pricing.html">Hire this role →</a>
+      </div>
+      <div class="pay-card highlight">
+        <div class="pay-role">MANAGED</div>
+        <div class="pay-amount">$X<span>/month</span></div>
+        <div class="pay-desc">Receptionist + Support + Sales Rep, working together from day one.</div>
+        <a class="pay-cta" href="aether-ai-pricing.html">Build my team →</a>
+      </div>
+      <div class="pay-card">
+        <div class="pay-role">DEDICATED</div>
+        <div class="pay-amount">Custom</div>
+        <div class="pay-desc">All eight roles, tuned to your business, with a dedicated setup call.</div>
+        <a class="pay-cta" href="aether-ai-pricing.html">Talk to us →</a>
+      </div>
+    </div>
+    <p style="text-align:center; margin-top:10px;"><a class="btn-ghost" href="aether-ai-pricing.html">See full plan comparison →</a></p>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap cta-inner">
+    <h2>Your first hire can start today.</h2>
+    <div class="actions">
+      <a class="btn-primary" href="aether-ai-pricing.html">Hire your Receptionist</a>
+      <a class="btn-ghost" href="#roster">Or browse the roster</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">© 2026 AETHER AI · DIGITAL WORKFORCE PLATFORM</div>
+    <div class="footlinks">
+      <a href="#roster">Roster</a>
+      <a href="aether-ai-pricing.html">Pricing</a>
+      <a href="#">Docs</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== PRE-SALES CHAT WIDGET (Aether's own Sales Rep, dogfooding the product) ===== -->
+<button class="site-chat-launcher" onclick="toggleSiteChat()">💬<span class="pulse"></span></button>
+<div class="site-chat-panel" id="siteChatPanel">
+  <div class="site-chat-head">
+    <div class="site-chat-avatar">SR</div>
+    <div><div class="site-chat-title">Sales Rep · Aether AI</div><div class="site-chat-sub">● Active now</div></div>
+    <button class="site-chat-close" onclick="toggleSiteChat()">✕</button>
+  </div>
+  <div class="site-chat-body" id="siteChatBody">
+    <div class="site-msg bot">Hi — I'm Aether's own Sales Rep, actually running on this site right now. What's the business you're looking to bring on help for?</div>
+  </div>
+  <div class="site-chat-options" id="siteChatOptions">
+    <button onclick="siteChatPick('reception')">We're missing calls / bookings</button>
+    <button onclick="siteChatPick('support')">Support tickets pile up</button>
+    <button onclick="siteChatPick('leads')">Leads go cold before we follow up</button>
+    <button onclick="siteChatPick('browsing')">Just looking around</button>
+  </div>
+  <div class="site-chat-foot">SCRIPTED PREVIEW · POWERED BY AETHER AI</div>
+</div>
+
+<script>
+  /* ---------- Tilt effect on hero card + role cards ---------- */
+  document.querySelectorAll('.id-card, .role-card').forEach(card=>{
+    card.classList.add('tilt');
+    card.addEventListener('mousemove', (e)=>{
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      const base = card.classList.contains('id-card') ? 'rotate(1.4deg)' : '';
+      card.style.transform = `perspective(700px) rotateY(${x*8}deg) rotateX(${-y*8}deg) ${base}`;
+    });
+    card.addEventListener('mouseleave', ()=>{
+      card.style.transform = card.classList.contains('id-card') ? 'rotate(1.4deg)' : '';
+    });
+  });
+
+  /* ---------- Try-before-you-hire demo ---------- */
+  const demoScripts = {
+    reception: {name:'Receptionist', avatar:'R', msgs:[
+      ['system','Fri, 9:42 PM — after hours'],
+      ['bot',"Hi, thanks for reaching out — we're closed right now, but I can still get you booked in."],
+      ['user',"Can I get a cleaning appointment for next week?"],
+      ['bot',"Sure — Tuesday or Thursday afternoon both have openings. I'll pencil you in and the front desk will confirm first thing tomorrow."],
+      ['system','booked · confirmation queued for morning review']
+    ]},
+    support: {name:'Support', avatar:'S', msgs:[
+      ['system','Mon, 2:15 PM'],
+      ['bot',"Hi, I'm the Support desk — what can I help with?"],
+      ['user',"Do you cover Delta Dental PPO?"],
+      ['bot',"That's a good one for our front desk to confirm directly — I've flagged this for a team member and they'll follow up by email shortly. Anything else meanwhile?"],
+      ['system','escalated · outside knowledge file, by design']
+    ]},
+    sales: {name:'Sales Rep', avatar:'SR', msgs:[
+      ['system','Wed, 11:03 AM'],
+      ['bot',"Hey there — what brought you to us today?"],
+      ['user',"Looking into Invisalign, not sure if I'm a candidate."],
+      ['bot',"Good news — that's exactly what a free consult is for. I can get you on the calendar and pass your details to our treatment coordinator so they're ready for you."],
+      ['system','lead qualified · handed off to Sales']
+    ]}
+  };
+  function renderDemo(key){
+    const d = demoScripts[key];
+    document.getElementById('demoName').textContent = d.name;
+    document.getElementById('demoAvatar').textContent = d.avatar;
+    const body = document.getElementById('demoBody');
+    body.innerHTML = '';
+    d.msgs.forEach((m, i)=>{
+      const [role, text] = m;
+      const el = document.createElement('div');
+      el.className = 'demo-msg ' + (role==='system' ? 'tag' : role);
+      el.textContent = text;
+      el.style.animationDelay = (i*0.45)+'s';
+      body.appendChild(el);
+    });
+  }
+  let currentDemo = 'reception';
+  function selectDemo(key, btn){
+    currentDemo = key;
+    document.querySelectorAll('.picker-card').forEach(c=>c.classList.remove('selected'));
+    btn.classList.add('selected');
+    renderDemo(key);
+  }
+  function replayDemo(){ renderDemo(currentDemo); }
+  renderDemo('reception');
+
+  /* ---------- Pre-sales site chat ---------- */
+  function toggleSiteChat(){
+    document.getElementById('siteChatPanel').classList.toggle('open');
+  }
+  function addSiteMsg(role, text){
+    const body = document.getElementById('siteChatBody');
+    const el = document.createElement('div');
+    el.className = 'site-msg ' + role;
+    el.textContent = text;
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+  }
+  const siteChatReplies = {
+    reception: "Makes sense — that's usually the Receptionist role. It answers on your site (and eventually your phone line) so nothing slips through after hours.",
+    support: "Got it — Support handles tickets and known issues, and hands off anything outside its file instead of guessing.",
+    leads: "That's the Sales Rep's job — it qualifies inbound leads right away and passes warm ones straight to your team.",
+    browsing: "All good — feel free to poke at the roster above, or try the live demo a bit further down the page."
+  };
+  let siteChatStage = 0;
+  function siteChatPick(key){
+    const btnText = event.target.textContent;
+    addSiteMsg('user', btnText);
+    document.getElementById('siteChatOptions').innerHTML = '';
+    setTimeout(()=>{
+      addSiteMsg('bot', siteChatReplies[key]);
+      if(siteChatStage === 0){
+        siteChatStage = 1;
+        setTimeout(()=>{
+          addSiteMsg('bot', "One last thing — how did you hear about us?");
+          const opts = document.getElementById('siteChatOptions');
+          ['Search / Google','Referral','Social media','Other'].forEach(label=>{
+            const b = document.createElement('button');
+            b.textContent = label;
+            b.onclick = ()=>{
+              addSiteMsg('user', label);
+              document.getElementById('siteChatOptions').innerHTML = '';
+              setTimeout(()=>addSiteMsg('bot', "Thanks — that helps us a lot. Take a look at the roster and pricing below, and reach out any time."), 500);
+            };
+            opts.appendChild(b);
+          });
+        }, 600);
+      }
+    }, 550);
+  }
+</script>
+
+</body>
+</html>

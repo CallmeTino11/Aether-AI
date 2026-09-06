@@ -24,6 +24,7 @@ import {
   PgBusinessRepository,
   PgConversationRepository,
   PgEmployeeRepository,
+  PgSignupLeadRepository,
   PgWidgetSessionRepository,
 } from "./infrastructure/postgres/repositories.js";
 import { PgNotificationOutboxRepository } from "./infrastructure/postgres/pg-notification-outbox.js";
@@ -36,6 +37,7 @@ import { SupabaseTokenVerifier } from "./infrastructure/auth/supabase-jwt.js";
 import { createWidgetHandler } from "./http/widget-handler.js";
 import { createDashboardHandler } from "./http/dashboard-handler.js";
 import { createScheduledJobsHandler } from "./http/scheduled-jobs-handler.js";
+import { createLeadsHandler } from "./http/leads-handler.js";
 import type { NotificationSender } from "./application/notifications.js";
 import type { BusinessId } from "./domain/employee.js";
 
@@ -117,6 +119,7 @@ export interface App {
   readonly handleWidget: (request: Request) => Promise<Response>;
   readonly handleDashboard: (request: Request) => Promise<Response>;
   readonly handleScheduledJobs: (request: Request) => Promise<Response>;
+  readonly handleLeads: (request: Request) => Promise<Response>;
   readonly close: () => Promise<void>;
 }
 
@@ -231,6 +234,13 @@ export function createApp(config: AppConfig): App {
       notificationWorker,
       rateLimiter: new PgRateLimiter(serviceSql),
       cronSecret: config.cronSecret,
+    }),
+
+    // Reuses the widget's origin allowlist: both are anonymous, cross-origin
+    // endpoints the marketing site calls, so a site permitted to open the
+    // live demo widget is permitted to submit the lead form.
+    handleLeads: createLeadsHandler(new PgSignupLeadRepository(serviceSql), outbox, {
+      allowedOrigins: config.widgetAllowedOrigins,
     }),
 
     close: async () => {

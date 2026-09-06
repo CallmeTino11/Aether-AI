@@ -13,7 +13,7 @@
 
 import type { BusinessId, ConversationId } from "../domain/employee.js";
 
-export type NotificationKind = "escalation";
+export type NotificationKind = "escalation" | "lead";
 export type NotificationChannel = "email" | "sms" | "telegram" | "whatsapp";
 
 export interface NotificationRecipient {
@@ -187,4 +187,43 @@ export function renderEscalationNotification(input: {
     smsBody,
     ...(input.conversationUrl !== undefined ? { conversationUrl: input.conversationUrl } : {}),
   };
+}
+
+/**
+ * Renders the "a prospect wants to buy Aether AI" alert. Kept pure and
+ * separate from `renderEscalationNotification` — a site lead is not a
+ * customer conversation and has no conversation URL, grounding reason, or
+ * employee to name.
+ */
+export function renderLeadNotification(input: {
+  readonly name?: string;
+  readonly companyName?: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly planInterest: string;
+  readonly message?: string;
+  readonly source: string;
+  readonly recipients: readonly NotificationRecipient[];
+}): NotificationPayload {
+  const who = input.name || input.companyName || "Someone";
+  const subject = `New site lead: ${who} — interested in ${input.planInterest}`;
+  const body = [
+    `A visitor to the Aether AI site asked about the ${input.planInterest} plan.`,
+    "",
+    input.name ? `Name: ${input.name}` : "",
+    input.companyName ? `Company: ${input.companyName}` : "",
+    input.email ? `Email: ${input.email}` : "",
+    input.phone ? `Phone: ${input.phone}` : "",
+    input.message ? `Message: ${input.message}` : "",
+    "",
+    `Source: ${input.source}`,
+  ]
+    .filter((line, index, all) => !(line === "" && all[index - 1] === ""))
+    .join("\n");
+
+  const smsPrefix = `Lead (${input.planInterest}): `;
+  const contact = input.email || input.phone || "no contact given";
+  const smsBody = truncateForSms(`${smsPrefix}${who} — ${contact}`, SMS_SEGMENT_LIMIT);
+
+  return { recipients: input.recipients, subject, body, smsBody };
 }

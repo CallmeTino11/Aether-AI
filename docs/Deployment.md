@@ -72,7 +72,7 @@ Set these in Vercel (Project → Settings → Environment Variables). See `.env.
 | `CRON_SECRET` | 32+ random characters. Vercel sends this automatically to cron routes |
 | `RESEND_API_KEY` / `NOTIFICATION_FROM` | From address must be on a domain verified with Resend |
 | `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM` | `TWILIO_FROM` in E.164, e.g. `+27871234567` |
-| `WIDGET_ALLOWED_ORIGINS` | Comma-separated customer domains. No wildcard — the endpoint is credentialed |
+| `WIDGET_ALLOWED_ORIGINS` | Comma-separated customer domains. No wildcard — the endpoint is credentialed. Also gates `/api/leads` (DEC-0027) — include the marketing site's own domain here |
 | `DASHBOARD_BASE_URL` | Used to build the deep link in alerts |
 
 The app validates all of this at startup and **refuses to boot** if anything required is missing. That is deliberate (DEC-0020): a missing email key discovered when the first customer escalation fails to send is an incident; the same mistake at boot is a deployment that never starts.
@@ -134,4 +134,27 @@ Step 3 is the one worth watching. If the employee invents a plausible answer to 
 - **No signup flow.** Businesses are created with SQL.
 - **One business per user.** `resolveBusiness` takes the first membership.
 - **No conversation history in the widget.** A page refresh keeps the session; a new tab starts fresh.
-- **No lead extraction.** The table and repository exist, but nothing populates them from conversation yet.
+- **No lead extraction from tenant conversations.** The `leads` table and repository exist, but nothing yet populates them from a customer's conversation with a business's own Receptionist. (FR-3 as originally scoped is still open; what shipped in DEC-0027 is a related but different flow — prospects asking about Aether AI itself, via the pricing page — see below.)
+
+---
+
+## 6. The marketing site (`web/`, DEC-0026/0027)
+
+`web/` is a **separate Next.js app with its own `package.json`**, deployed as its **own Vercel project** — not part of the app above. This keeps the tested, already-deployable core (widget, dashboard, cron, leads) untouched, and keeps the frontend replaceable per DEC-0005. The site talks to the core API's public, anonymous endpoints (the widget conversation API and `/api/leads`) over plain cross-origin `fetch`, the same contract `public/widget.js` already uses.
+
+**To deploy it:**
+
+1. In Vercel, create a **second project** from this same repository, with **Root Directory** set to `web`. Vercel auto-detects Next.js; no custom `vercel.json` is needed there.
+2. Set its environment variables (see `web/.env.example`):
+
+   | Variable | Notes |
+   |---|---|
+   | `NEXT_PUBLIC_AETHER_API_BASE` | The **core API project's** deployed URL (the one from step 3 above), no trailing slash |
+   | `NEXT_PUBLIC_DEMO_RECEPTIONIST_EMPLOYEE_ID` | Employee id of the seeded demo tenant — `scripts/setup.sh` step 9 prints this |
+
+3. Add the marketing site's own deployed domain to the core API project's `WIDGET_ALLOWED_ORIGINS` (it calls both the widget endpoints and `/api/leads`, both gated by the same allowlist), then redeploy the core API project so the new origin takes effect.
+4. `scripts/setup.sh` step 8 wires up who gets alerted when the pricing page's "Choose Managed" / "Talk to us" CTAs capture a lead (DEC-0027); step 9 seeds the demo tenant the live "try before you hire" Receptionist card talks to.
+
+Until `NEXT_PUBLIC_AETHER_API_BASE` and `NEXT_PUBLIC_DEMO_RECEPTIONIST_EMPLOYEE_ID` are both set, the Receptionist card in "try before you hire" falls back to the same labeled scripted preview as the other two roles — the site never claims to be live when it isn't (DEC-0017).
+
+**Verifying the live demo:** open the deployed site, pick "Receptionist" under "try before you hire", and ask it something the demo tenant's knowledge base covers (hours, pricing) and something it doesn't — the second should escalate rather than invent an answer, same as any real deployment.

@@ -41,6 +41,8 @@ import type {
   LeadDraft,
   LeadRepository,
   PersistedMessage,
+  SignupLeadDraft,
+  SignupLeadRepository,
 } from "../../application/ports.js";
 import type { WidgetSessionRepository } from "../../application/widget-conversation-service.js";
 import type { SqlExecutor } from "./sql-executor.js";
@@ -412,6 +414,48 @@ export class PgLeadRepository implements LeadRepository {
       ...(row.phone ? { phone: row.phone } : {}),
       ...(row.notes ? { notes: row.notes } : {}),
     }));
+  }
+}
+
+// --------------------------------------------------------------------------
+// Signup leads (prospects asking about Aether AI itself, via the public site)
+// --------------------------------------------------------------------------
+
+export class PgSignupLeadRepository implements SignupLeadRepository {
+  constructor(private readonly sql: SqlExecutor) {}
+
+  /**
+   * Same reasoning as `appendTurn`: the insert and the alert must land
+   * together, so this opens its own transaction rather than taking one on
+   * faith from the caller.
+   */
+  async create(draft: SignupLeadDraft, notification: EnqueueNotification): Promise<string> {
+    if (!draft.email && !draft.phone) {
+      throw new Error("A signup lead requires at least an email address or a phone number.");
+    }
+    return this.sql.transaction(async (tx) => {
+      const rows = await tx.query<{ id: string }>(
+        `insert into signup_leads (name, company_name, email, phone, plan_interest, message, source)
+         values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+        [
+          draft.name ?? null,
+          draft.companyName ?? null,
+          draft.email ?? null,
+          draft.phone ?? null,
+          draft.planInterest,
+          draft.message ?? null,
+          draft.source,
+        ],
+      );
+      const row = rows[0];
+      if (!row) throw new Error("Signup lead insert returned no id.");
+
+      // Same executor (`tx`), not `this.sql` — see appendTurn's note on why
+      // that distinction is the whole point.
+      await new PgNotificationOutboxRepository(tx).enqueue(notification);
+
+      return row.id;
+    });
   }
 }
 

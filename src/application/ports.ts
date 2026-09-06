@@ -79,3 +79,29 @@ export interface LeadRepository {
   create(draft: LeadDraft): Promise<string>;
   listForBusiness(businessId: BusinessId): Promise<readonly LeadDraft[]>;
 }
+
+/**
+ * A prospect asking about Aether AI itself, captured on the public pricing
+ * page — not a tenant business's own customer (that's `LeadDraft` above).
+ * See src/domain/house-business.ts for why this has no `businessId`.
+ */
+export interface SignupLeadDraft {
+  readonly name?: string;
+  readonly companyName?: string;
+  readonly email?: string;
+  readonly phone?: string;
+  readonly planInterest: "essentials" | "managed" | "dedicated";
+  readonly message?: string;
+  /** Which pricing CTA or page section produced this lead. */
+  readonly source: string;
+}
+
+export interface SignupLeadRepository {
+  /**
+   * Persists the lead and enqueues its alert in ONE transaction — same
+   * reasoning as `ConversationRepository.appendTurn`: a lead saved without its
+   * notification would leave a prospect who filled out a form with nobody
+   * ever finding out.
+   */
+  create(draft: SignupLeadDraft, notification: EnqueueNotification): Promise<string>;
+}

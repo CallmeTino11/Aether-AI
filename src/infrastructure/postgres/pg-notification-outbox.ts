@@ -7,6 +7,7 @@ import type { BusinessId } from "../../domain/employee.js";
 import type {
   EnqueueNotification,
   NotificationChannel,
+  NotificationKind,
   NotificationOutboxRepository,
   NotificationPayload,
   NotificationRecipient,
@@ -57,7 +58,9 @@ export class PgNotificationOutboxRepository implements NotificationOutboxReposit
       id: row.id,
       businessId: asBusinessId(row.business_id),
       ...(row.conversation_id ? { conversationId: asConversationId(row.conversation_id) } : {}),
-      kind: "escalation" as const,
+      // Was hardcoded to "escalation" — harmless while it was the only kind,
+      // but silently mislabeled every row once "lead" existed too.
+      kind: row.kind as NotificationKind,
       payload: parsePayload(row.payload),
       attempts: row.attempts,
     }));

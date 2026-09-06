@@ -16,6 +16,7 @@ import {
   PgKnowledgeRepository,
 } from "../infrastructure/postgres/repositories.js";
 import { PgNotificationOutboxRepository } from "../infrastructure/postgres/pg-notification-outbox.js";
+import { PgSignupLeadRepository } from "../infrastructure/postgres/repositories.js";
 import { ConsoleNotificationSender } from "../infrastructure/notifications/console-sender.js";
 import { PostgresKnowledgeRetriever } from "../knowledge/postgres-retriever.js";
 import { ReceptionistEngine } from "../application/receptionist-engine.js";
@@ -25,10 +26,12 @@ import {
   backoffDelayMs,
   MAX_DELIVERY_ATTEMPTS,
   renderEscalationNotification,
+  renderLeadNotification,
   type NotificationPayload,
   type NotificationRecipient,
   type NotificationSender,
 } from "../application/notifications.js";
+import { HOUSE_BUSINESS_ID } from "../domain/house-business.js";
 import {
   asBusinessId,
   asConversationId,
@@ -174,6 +177,42 @@ test("escalation notification states the question and the reason", () => {
   assert.match(payload.body, /paediatric appointments on Saturdays/);
   assert.match(payload.body, /No relevant business knowledge found/);
   assert.match(payload.body, /conversations\/abc/);
+});
+
+test("lead notification names who asked and what they're interested in", () => {
+  const payload = renderLeadNotification({
+    name: "Priya Shah",
+    companyName: "Shah Family Dental",
+    email: "priya@shahdental.example",
+    planInterest: "managed",
+    source: "pricing_managed_cta",
+    recipients: [{ channel: "email", address: "founder@aether-ai.example" }],
+  });
+  assert.match(payload.subject, /Priya Shah/);
+  assert.match(payload.subject, /managed/);
+  assert.match(payload.body, /Shah Family Dental/);
+  assert.match(payload.body, /priya@shahdental.example/);
+  assert.match(payload.body, /pricing_managed_cta/);
+});
+
+test("lead notification with no name falls back to company, then a generic label", () => {
+  const byCompany = renderLeadNotification({
+    companyName: "Acme Dental",
+    email: "info@acme.example",
+    planInterest: "essentials",
+    source: "pricing_essentials_cta",
+    recipients: [],
+  });
+  assert.match(byCompany.subject, /Acme Dental/);
+
+  const anonymous = renderLeadNotification({
+    phone: "+15551234567",
+    planInterest: "dedicated",
+    source: "pricing_dedicated_cta",
+    recipients: [],
+  });
+  assert.match(anonymous.subject, /Someone/);
+  assert.match(anonymous.smsBody ?? "", /\+15551234567/);
 });
 
 test("the console sender refuses to run in production", () => {
@@ -425,6 +464,75 @@ test("a business with no recipients surfaces a failure instead of silently dropp
     [BUSINESS],
   );
   assert.match(rows[0]?.last_error ?? "", /No notification recipients configured/);
+});
+
+// ---------------------------------------------------------------------------
+// Site leads (FR-3 via the pricing page, DEC-0027) — reuse of the same outbox
+// ---------------------------------------------------------------------------
+
+async function resetSignupLeads(): Promise<void> {
+  await sql.query("delete from notification_outbox where business_id = $1", [HOUSE_BUSINESS_ID]);
+  await sql.query("delete from signup_leads");
+  await sql.query(
+    `insert into notification_recipients (business_id, channel, address)
+     values ($1, 'email', 'founder@aether-ai.example') on conflict do nothing`,
+    [HOUSE_BUSINESS_ID],
+  );
+}
+
+test("a signup lead persists and enqueues a 'lead' alert in one transaction", dbOnly, async () => {
+  await resetSignupLeads();
+  const repo = new PgSignupLeadRepository(sql);
+
+  const payload = renderLeadNotification({
+    name: "Priya Shah",
+    email: "priya@shahdental.example",
+    planInterest: "managed",
+    source: "pricing_managed_cta",
+    recipients: [{ channel: "email", address: "founder@aether-ai.example" }],
+  });
+
+  await repo.create(
+    { name: "Priya Shah", email: "priya@shahdental.example", planInterest: "managed", source: "pricing_managed_cta" },
+    { businessId: HOUSE_BUSINESS_ID, kind: "lead", payload },
+  );
+
+  const leads = await sql.query<{ email: string }>("select email from signup_leads");
+  assert.equal(leads.length, 1);
+  assert.equal(leads[0]?.email, "priya@shahdental.example");
+
+  const outbox = new PgNotificationOutboxRepository(sql);
+  const claimed = await outbox.claimDue(10, 300);
+  const leadEntries = claimed.filter((entry) => entry.businessId === HOUSE_BUSINESS_ID);
+  assert.equal(leadEntries.length, 1);
+  // The bug this guards: claimDue used to hardcode kind: "escalation" for
+  // every row, which would have silently mislabeled this as an escalation.
+  assert.equal(leadEntries[0]?.kind, "lead");
+});
+
+test("two site leads queue two independent alerts, unlike repeated escalations", dbOnly, async () => {
+  await resetSignupLeads();
+  const repo = new PgSignupLeadRepository(sql);
+
+  for (const email of ["a@example.com", "b@example.com"]) {
+    const payload = renderLeadNotification({
+      email,
+      planInterest: "essentials",
+      source: "pricing_essentials_cta",
+      recipients: [{ channel: "email", address: "founder@aether-ai.example" }],
+    });
+    await repo.create({ email, planInterest: "essentials", source: "pricing_essentials_cta" }, {
+      businessId: HOUSE_BUSINESS_ID,
+      kind: "lead",
+      payload,
+    });
+  }
+
+  const rows = await sql.query(
+    "select 1 from notification_outbox where business_id = $1 and status = 'pending'",
+    [HOUSE_BUSINESS_ID],
+  );
+  assert.equal(rows.length, 2, "leads have no conversation to dedupe on — each submission is its own alert");
 });
 
 test("concurrent workers never claim the same alert twice", dbOnly, async () => {

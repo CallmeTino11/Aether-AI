@@ -242,7 +242,65 @@ psql "$DATABASE_URL" -q -c "
 " >/dev/null 2>&1 && ok "linked your account to it"
 
 # ---------------------------------------------------------------------------
-step "8. Deploying"
+step "8. Wiring up site lead notifications"
+# ---------------------------------------------------------------------------
+
+# The pricing page's CTAs write to signup_leads and enqueue an alert against a
+# fixed "house" business (migration 0006, src/domain/house-business.ts) — a
+# prospect asking about Aether AI has no business of their own yet. Without a
+# recipient here, leads are captured but nobody is ever told (DEC-0017).
+HOUSE_BUSINESS_ID="00000000-0000-4000-8000-00000000a5e7"
+echo
+note "Where should a new pricing-page lead (\"Choose Managed\", \"Talk to us\") reach you?"
+ask "Your email for site-lead alerts" SITE_LEAD_EMAIL
+if [ -n "$SITE_LEAD_EMAIL" ]; then
+  psql "$DATABASE_URL" -q -c "
+    insert into notification_recipients (business_id, channel, address)
+    values ('$HOUSE_BUSINESS_ID', 'email', '${SITE_LEAD_EMAIL//\'/\'\'}')
+    on conflict do nothing;
+  " >/dev/null 2>&1 && ok "site leads will alert $SITE_LEAD_EMAIL"
+else
+  warn "no address given — site leads will be captured but nobody will be alerted"
+fi
+
+# ---------------------------------------------------------------------------
+step "9. Seeding the demo tenant for the site's live widget demo"
+# ---------------------------------------------------------------------------
+
+# The marketing site's "try before you hire" Receptionist card talks to a real,
+# grounded employee rather than a script (DEC-0027). This gives it a business
+# and a small real knowledge base to be grounded in.
+if psql "$DATABASE_URL" -tAc "select 1 from businesses where name = 'Aether AI — Live Demo'" 2>/dev/null | grep -q 1; then
+  DEMO_BUSINESS_ID="$(psql "$DATABASE_URL" -tAc "select id from businesses where name = 'Aether AI — Live Demo' limit 1" 2>/dev/null | tr -d '[:space:]')"
+  DEMO_EMPLOYEE_ID="$(psql "$DATABASE_URL" -tAc "select id from digital_employees where business_id = '$DEMO_BUSINESS_ID' limit 1" 2>/dev/null | tr -d '[:space:]')"
+  ok "demo tenant already seeded (employee $DEMO_EMPLOYEE_ID)"
+else
+  DEMO_BUSINESS_ID="$(psql "$DATABASE_URL" -tAc "
+    insert into businesses (name, description)
+    values ('Aether AI — Live Demo', 'Public demo tenant for the marketing site''s live widget. Not a real customer.')
+    returning id;
+  " 2>/dev/null | tr -d '[:space:]')"
+  DEMO_EMPLOYEE_ID="$(psql "$DATABASE_URL" -tAc "
+    insert into digital_employees (business_id, role, status, persona_name, persona_tone, languages)
+    values ('$DEMO_BUSINESS_ID', 'receptionist', 'active', 'Demo Receptionist', 'warm and professional', array['en'])
+    returning id;
+  " 2>/dev/null | tr -d '[:space:]')"
+  psql "$DATABASE_URL" -q -c "
+    insert into knowledge_chunks (business_id, kind, title, content) values
+      ('$DEMO_BUSINESS_ID', 'hours', 'Opening hours', 'This live demo is available 24/7 — it is answering you right now.'),
+      ('$DEMO_BUSINESS_ID', 'faq', 'What is Aether AI', 'Aether AI is a digital workforce for small and medium businesses. This Receptionist is a real, working employee — not a script — grounded only in the facts you are reading in this conversation.'),
+      ('$DEMO_BUSINESS_ID', 'pricing', 'Pricing', 'Plans are Essentials (one role), Managed (up to three roles, human-reviewed weekly), and Dedicated (all eight roles, custom). See the pricing page for current rates.'),
+      ('$DEMO_BUSINESS_ID', 'policy', 'What happens off-script', 'If you ask something outside this demo''s knowledge, the Receptionist escalates instead of guessing — the same grounding rule real deployments run under.');
+  " >/dev/null 2>&1
+  ok "demo tenant seeded (employee $DEMO_EMPLOYEE_ID)"
+fi
+
+note "Set this on the MARKETING SITE's Vercel project (web/), not this one:"
+note "  NEXT_PUBLIC_DEMO_RECEPTIONIST_EMPLOYEE_ID=$DEMO_EMPLOYEE_ID"
+note "  NEXT_PUBLIC_AETHER_API_BASE=<this project's deployed URL, set after step 10>"
+
+# ---------------------------------------------------------------------------
+step "10. Deploying"
 # ---------------------------------------------------------------------------
 
 if ! command -v vercel >/dev/null 2>&1; then

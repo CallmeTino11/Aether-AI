@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Aether AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101B33; --ink-soft:#33405C; --paper:#F4F1E6; --paper-dim:#E8E3D4;
+    --brass:#A9843C; --brass-soft:#D8C79A; --stamp:#B5402F; --stamp-soft:#3a2420;
+    --line:rgba(244,241,230,0.14); --good:#6FCF7C;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--ink); color:var(--paper); font-family:'Inter', sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .serif{font-family:'Fraunces', serif;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+  a{color:inherit; text-decoration:none;}
+
+  nav.topbar{position:sticky; top:0; z-index:40; background:rgba(16,27,51,0.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  nav.topbar .wrap{display:flex; align-items:center; justify-content:space-between; height:68px;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-weight:600; font-size:1.15rem;}
+  .brand-mark{width:26px; height:26px; border:1.5px solid var(--brass-soft); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace; font-size:0.62rem; color:var(--brass-soft);}
+  .navlinks{display:flex; gap:34px; font-size:0.92rem; color:#C9CFDD;}
+  .navlinks a:hover{color:var(--paper);}
+  .navlinks a.current{color:var(--paper); border-bottom:1px solid var(--brass-soft); padding-bottom:4px;}
+  .nav-cta{border:1px solid var(--brass-soft); color:var(--paper); padding:9px 18px; font-size:0.88rem; font-family:'IBM Plex Mono', monospace;}
+  .nav-cta:hover{background:var(--brass-soft); color:var(--ink);}
+
+  header.page-head{padding:80px 0 56px; border-bottom:1px solid var(--line); text-align:left;}
+  .eyebrow-row{display:flex; align-items:center; gap:12px; margin-bottom:20px; color:var(--brass-soft); font-family:'IBM Plex Mono', monospace; font-size:0.82rem;}
+  .eyebrow-row .dot{width:6px; height:6px; border-radius:50%; background:var(--good);}
+  h1.page-title{font-family:'Fraunces', serif; font-weight:500; font-size:2.9rem; letter-spacing:-0.01em; max-width:16ch;}
+  p.page-sub{margin-top:18px; font-size:1.05rem; color:#C9CFDD; max-width:60ch; line-height:1.65;}
+
+  section.plans{padding:76px 0 40px; border-bottom:1px solid var(--line);}
+  .toggle-row{display:flex; align-items:center; gap:14px; margin-bottom:44px;}
+  .toggle-pill{display:flex; background:rgba(244,241,230,0.08); border-radius:20px; padding:3px;}
+  .toggle-pill button{padding:8px 18px; border-radius:20px; font-size:0.84rem; background:transparent; border:none; color:#C9CFDD; font-family:'Inter'; cursor:pointer;}
+  .toggle-pill button.active{background:var(--paper); color:var(--ink);}
+  .save-badge{font-family:'IBM Plex Mono', monospace; font-size:0.74rem; color:var(--good); border:1px solid var(--good); padding:5px 10px; border-radius:20px;}
+
+  .plans-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line);}
+  .plan-card{background:var(--ink); padding:32px 28px; display:flex; flex-direction:column;}
+  .plan-card.feat{background:#182545;}
+  .plan-name{font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color:var(--brass-soft); letter-spacing:0.03em;}
+  .plan-price{font-family:'Fraunces', serif; font-size:2.3rem; margin-top:14px; color:var(--paper);}
+  .plan-price span{font-size:0.86rem; font-weight:400; color:#B7BECF; font-family:'Inter';}
+  .plan-desc{font-size:0.86rem; color:#B7BECF; margin-top:12px; min-height:44px; line-height:1.55;}
+  .split-badges{display:flex; gap:8px; margin:18px 0;}
+  .split-badge{font-family:'IBM Plex Mono', monospace; font-size:0.66rem; padding:4px 9px; border-radius:20px;}
+  .split-badge.ai{background:rgba(244,241,230,0.1); color:#C9CFDD;}
+  .split-badge.human{background:var(--stamp-soft); color:#E19487;}
+  .plan-list{list-style:none; margin:16px 0 24px; flex:1;}
+  .plan-list li{font-size:0.86rem; padding:9px 0; border-top:1px solid var(--line); display:flex; gap:9px; color:#D8DBE6;}
+  .plan-list li:first-child{border-top:none;}
+  .plan-list li::before{content:"—"; color:var(--brass-soft); flex-shrink:0;}
+  .btn-primary{background:var(--stamp); color:var(--paper); padding:12px 22px; font-family:'IBM Plex Mono', monospace; font-size:0.84rem; border:1px solid var(--stamp); text-align:center;}
+  .btn-primary:hover{background:#943225;}
+  .btn-outline{border:1px solid var(--brass-soft); color:var(--paper); padding:12px 22px; font-family:'IBM Plex Mono', monospace; font-size:0.84rem; text-align:center;}
+  .btn-outline:hover{background:var(--brass-soft); color:var(--ink);}
+
+  section.compare{padding:76px 0; border-bottom:1px solid var(--line);}
+  .section-label{font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--brass-soft); display:flex; align-items:center; gap:12px; margin-bottom:30px;}
+  .section-label .rule{flex:0 0 34px; height:1px; background:var(--brass-soft);}
+  table.compare-table{width:100%; border-collapse:collapse;}
+  table.compare-table th, table.compare-table td{padding:16px 18px; text-align:left; border-bottom:1px solid var(--line); font-size:0.88rem;}
+  table.compare-table th{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--brass-soft); text-align:center; letter-spacing:0.02em;}
+  table.compare-table th:first-child{text-align:left;}
+  table.compare-table td:not(:first-child){text-align:center; color:#D8DBE6;}
+  table.compare-table tr:last-child td{border-bottom:none;}
+  table.compare-table td:first-child{color:#B7BECF;}
+
+  section.faq{padding:76px 0; border-bottom:1px solid var(--line);}
+  .faq-grid{margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:32px 48px;}
+  .faq-item h3{font-family:'Fraunces', serif; font-weight:500; font-size:1.08rem; margin-bottom:8px;}
+  .faq-item p{font-size:0.9rem; color:#C9CFDD; line-height:1.6;}
+
+  section.final-cta{padding:96px 0; border-bottom:1px solid var(--line);}
+  .cta-inner{display:flex; align-items:center; justify-content:space-between; gap:40px; flex-wrap:wrap;}
+  .final-cta h2{font-family:'Fraunces', serif; font-size:2.2rem; max-width:14ch; font-weight:500; line-height:1.16;}
+  .final-cta .actions{display:flex; gap:16px;}
+
+  footer{padding:52px 0;}
+  footer .wrap{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;}
+  footer .mono{font-size:0.76rem; color:#8189A0;}
+  footer .footlinks{display:flex; gap:26px; font-size:0.82rem; color:#B7BECF;}
+
+  @media (max-width:880px){
+    .plans-grid, .faq-grid{grid-template-columns:1fr;}
+    h1.page-title{font-size:2.2rem;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark">Æ</span>Aether AI</div>
+    <div class="navlinks">
+      <a href="aether-ai-landing.html#roster">Roster</a>
+      <a href="aether-ai-landing.html#onboarding">How it works</a>
+      <a href="aether-ai-pricing.html" class="current">Pricing</a>
+    </div>
+    <a class="nav-cta" href="#plans">Hire now</a>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="wrap">
+    <div class="eyebrow-row"><span class="dot"></span>PRICING FOR SMALL &amp; GROWING TEAMS</div>
+    <h1 class="page-title">Pay a salary, not a licence fee.</h1>
+    <p class="page-sub">Built for small and growing businesses — no enterprise contract, no IT team required. Every tier runs on the same grounded, audited engine; the difference is how much of the judgment call is handled by a person at Aether versus your own team.</p>
+  </div>
+</header>
+
+<section class="plans" id="plans">
+  <div class="wrap">
+    <div class="toggle-row">
+      <div class="toggle-pill">
+        <button class="active" id="btnMonthly" onclick="setBilling('m')">Monthly</button>
+        <button id="btnAnnual" onclick="setBilling('a')">Annual</button>
+      </div>
+      <span class="save-badge">Save 15% billed annually</span>
+    </div>
+
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">ESSENTIALS</div>
+        <div class="plan-price"><span class="amt" data-m="X" data-a="X">$X</span><span>/mo per role</span></div>
+        <div class="plan-desc">The starting point for most small businesses. Fully autonomous within its file, escalates straight to you when it hits the edge of what it knows.</div>
+        <div class="split-badges"><span class="split-badge ai">95% AI</span><span class="split-badge human">5% you</span></div>
+        <ul class="plan-list">
+          <li>1 Digital Employee</li>
+          <li>Grounded answers only — no guessing</li>
+          <li>Full audit log, 30-day retention</li>
+          <li>Web chat + email</li>
+        </ul>
+        <a class="btn-outline" href="#">Choose Essentials</a>
+      </div>
+      <div class="plan-card feat">
+        <div class="plan-name">MANAGED</div>
+        <div class="plan-price"><span class="amt" data-m="X" data-a="X">$X</span><span>/mo per role</span></div>
+        <div class="plan-desc">For a growing team ready to hand off more than one desk. Aether reviews flagged conversations weekly, so each employee's file keeps getting sharper.</div>
+        <div class="split-badges"><span class="split-badge ai">85% AI</span><span class="split-badge human">15% Aether</span></div>
+        <ul class="plan-list">
+          <li>Up to 3 Digital Employees</li>
+          <li>Weekly review of edge cases</li>
+          <li>Priority escalation routing</li>
+          <li>Phone + web chat + email</li>
+        </ul>
+        <a class="btn-primary" href="#">Choose Managed</a>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">DEDICATED</div>
+        <div class="plan-price"><span class="amt">Custom</span></div>
+        <div class="plan-desc">The full roster, tuned monthly by a dedicated account manager who knows your business.</div>
+        <div class="split-badges"><span class="split-badge ai">70% AI</span><span class="split-badge human">30% Aether</span></div>
+        <ul class="plan-list">
+          <li>All 8 roles</li>
+          <li>Dedicated account manager</li>
+          <li>Monthly tuning &amp; reporting</li>
+          <li>All channels + custom integrations</li>
+        </ul>
+        <a class="btn-outline" href="#">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="compare">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>FULL COMPARISON</div>
+    <table class="compare-table">
+      <tr><th>Feature</th><th>Essentials</th><th>Managed</th><th>Dedicated</th></tr>
+      <tr><td>Digital Employees included</td><td>1</td><td>Up to 3</td><td>All 8</td></tr>
+      <tr><td>Human review of edge cases</td><td>—</td><td>Weekly</td><td>Continuous</td></tr>
+      <tr><td>Dedicated account manager</td><td>—</td><td>—</td><td>✓</td></tr>
+      <tr><td>Audit log retention</td><td>30 days</td><td>90 days</td><td>Unlimited</td></tr>
+      <tr><td>Channels</td><td>Web chat, email</td><td>+ Phone</td><td>+ Custom integrations</td></tr>
+      <tr><td>Support SLA</td><td>Email, 48h</td><td>Email, 24h</td><td>Priority, 4h</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="wrap">
+    <div class="section-label"><span class="rule"></span>QUESTIONS</div>
+    <h2 style="font-family:'Fraunces',serif; font-weight:500; font-size:2rem; max-width:20ch;">Before you hire</h2>
+    <div class="faq-grid">
+      <div class="faq-item"><h3>What happens when it doesn't know something?</h3><p>It says so, and hands off — to your team on Essentials, or to Aether on Managed and Dedicated. It never invents an answer about your business.</p></div>
+      <div class="faq-item"><h3>Can I change roles later?</h3><p>Yes — add, pause, or upgrade any Digital Employee's tier at any time from their personnel file.</p></div>
+      <div class="faq-item"><h3>Is my data shared across accounts?</h3><p>No. Every account's data is fenced off at the database level — nothing crosses between clients.</p></div>
+      <div class="faq-item"><h3>How fast can I go live?</h3><p>Most single-role setups are live the same day — you're mainly filling in what the employee should know.</p></div>
+      <div class="faq-item"><h3>Do I need an IT team to set this up?</h3><p>No. If you can fill out a form describing your hours, pricing, and policies, you can hire a Digital Employee — no developer or IT department needed.</p></div>
+      <div class="faq-item"><h3>Is this only for big companies?</h3><p>The opposite — Aether is built for small and medium businesses that need front-desk coverage but don't have (or can't yet afford) a full team for it.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap cta-inner">
+    <h2>Ready to make your first hire?</h2>
+    <div class="actions">
+      <a class="btn-primary" href="#plans">Hire your Receptionist</a>
+      <a class="btn-outline" href="aether-ai-landing.html">Back to overview</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">© 2026 AETHER AI · DIGITAL WORKFORCE PLATFORM</div>
+    <div class="footlinks">
+      <a href="aether-ai-landing.html#roster">Roster</a>
+      <a href="aether-ai-pricing.html">Pricing</a>
+      <a href="#">Docs</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function setBilling(mode){
+    document.getElementById('btnMonthly').classList.toggle('active', mode==='m');
+    document.getElementById('btnAnnual').classList.toggle('active', mode==='a');
+  }
+</script>
+</body>
+</html>

@@ -77,6 +77,14 @@ Strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyT
 - `src/infrastructure/notifications/telegram-sender.ts` — free push-notification alerts (DEC-0025).
 - Channel availability is derived from the senders actually constructed and passed to the dashboard, so the UI can only offer what the deployment can deliver.
 
+**Session 012 additions — the public marketing site (DEC-0026, DEC-0027):**
+
+- `web/` — a **separate** Next.js app (own `package.json`, deployed as its own Vercel project — see `docs/Deployment.md` §6) reproducing the two approved mockups (`web/mockups/aether-ai-landing.html`, `aether-ai-pricing.html`) as real components: Home (`web/app/page.tsx`) and Pricing (`web/app/pricing/page.tsx`). Chosen over folding it into the core deployment so the tested, already-deployable core (widget/dashboard/cron/leads) stays untouched and the frontend stays replaceable (DEC-0005).
+- `web/components/TryBeforeYouHire.tsx` — the homepage's "try before you hire" role picker. The Receptionist card is backed by a real, grounded conversation against a seeded demo tenant (`web/lib/api.ts`, same session-token contract as `public/widget.js`, DEC-0012) whenever `NEXT_PUBLIC_AETHER_API_BASE` and `NEXT_PUBLIC_DEMO_RECEPTIONIST_EMPLOYEE_ID` are set; Support and Sales Rep stay the mockup's scripted, labeled preview, since neither is a built product yet. Without those two env vars, Receptionist also falls back to its scripted preview rather than claiming to be live (DEC-0017).
+- `web/components/SiteChatWidget.tsx` — the site's own pre-sales chat, scripted and labeled, framed as Aether's Sales Rep (DEC-0027).
+- **Lead capture (FR-3 via the site, DEC-0027):** a prospect asking about Aether AI itself through the pricing page's CTAs is a different shape of "lead" from the tenant-scoped `leads` table (0001) — they have no business yet. `supabase/migrations/0006_signup_leads.sql` adds `signup_leads` (RLS enabled, zero policies — service-role only, same pattern as the anonymous widget path) and widens `notification_outbox.kind` to accept `'lead'` alongside `'escalation'`. A single seeded "house" business row (`src/domain/house-business.ts`) anchors these notifications so the existing, tested outbox/worker/backoff machinery (DEC-0015/0016) delivers them unchanged rather than a second pipeline being invented. `src/application/notifications.ts` gained `renderLeadNotification`; `src/http/leads-handler.ts` + `api/leads.ts` expose `POST /api/leads`.
+- Fixed a latent bug found while adding the second notification kind: `PgNotificationOutboxRepository.claimDue` hardcoded `kind: "escalation"` on every claimed row — harmless while escalation was the only kind, silently mislabeling every lead notification once a second kind existed. Now reads the row's actual `kind`.
+
 **Verification status:**
 
 | Gate | What it proves |
@@ -172,5 +180,7 @@ None locked in yet. Candidates: Vercel, Supabase, Postgres, and whichever AI pro
 | DEC-0023 | Second AI provider implemented to prove the abstraction |
 | DEC-0024 | Deployment targets Vercel with serverless entry points |
 | DEC-0025 | Telegram is the recommended alert channel; no channel is mandatory |
+| DEC-0026 | SMB target market; public marketing site ships before the client console |
+| DEC-0027 | Site includes a live grounded demo, a sales chat widget, and an honest industries section; voice/telephony and general workflow-assistant capabilities are roadmap only |
 
 Organizational decisions: DEC-0001, DEC-0002, DEC-0003, DEC-0004.

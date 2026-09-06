@@ -6,6 +6,11 @@ What lives where, and why.
 /
 ├── README.md                Entry point — read this first
 ├── docs/                    Company-wide source-of-truth documents (this folder)
+├── web/                     Public marketing site (Next.js, own package.json) — separate Vercel project, see docs/Deployment.md
+│   ├── mockups/              Approved static HTML/CSS/JS mockups — reference only, not served
+│   ├── app/                  Next.js App Router: layout, globals.css, Home (/) and Pricing (/pricing) routes
+│   ├── components/           SiteNav, SiteFooter, SiteChatWidget (scripted pre-sales), TryBeforeYouHire (live Receptionist demo), LeadModal
+│   └── lib/api.ts            Client for the core API's public endpoints (widget conversations, /api/leads)
 ├── departments/
 │   ├── ceo/                 Strategy notes, roadmap-in-progress thinking
 │   ├── product/             Product/UX working notes feeding into docs/Product-UX.md

@@ -1,0 +1,16 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next/
+/out/
+tsconfig.tsbuildinfo
+
+# local env files (real secrets/config; .env.example stays committed)
+.env*.local
+.env
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
