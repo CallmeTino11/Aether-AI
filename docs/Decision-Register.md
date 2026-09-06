@@ -1001,4 +1001,90 @@ DEC-0015, DEC-0017, DEC-0020, DEC-0022
 ### Notes
 WhatsApp remains the right channel for reaching *customers* rather than owners — inbound customer messages open a free service window, so replies inside it cost nothing. That is a future customer-channel integration, not an alerting one, and the economics are opposite. Telegram messages set no parse mode, so an unbalanced asterisk or underscore in a customer's question cannot fail an alert.
 
+## DEC-0026 — Target market is SMBs; public marketing site ships before the client console
+
+**Department:** Product / CEO
+**Status:** Approved
+**Date:** 2026-09-06
+**Approved By:** Founder (Tino) — direction; Claude — implementation under DEC-0003
+
+### Decision
+Aether AI targets **small and medium businesses**, not enterprise — a clinic, a shop, a small firm, not an enterprise IT/procurement buyer. All copy, onboarding, and future FAQ/testimonial content speaks to an SMB owner.
+
+Scope for this build phase: ship the **public marketing website** first — landing page, pricing page, and a live widget demo — targeted at that SMB buyer. The **client console** (dashboard, personnel-file editor) is explicitly **deferred to phase two**. It has been mocked up (`aether-ai-app.html`, per-employee sidebar tabs and an add-employee flow) as a reference for that future build, but no console engineering happens in this phase.
+
+### Reason
+SMBs typically have **no** front-desk coverage at all, rather than an existing team a sales pitch has to displace — so the pitch is "finally afford coverage you've never had" rather than "replace your staff," which is both a faster sales cycle and an honest one. It also matches where the product actually is: there is no SOC2, enterprise SSO, or SLA story yet, so an enterprise pitch would be selling ahead of the product. The marketing site is the correct next artifact because there is currently nothing public to point a prospect at — the working Receptionist (per DEC-0004 and the session 002–011 build) has no storefront.
+
+### Impact
+- Product
+- Marketing
+- Engineering
+- Documentation
+
+### Requires Documentation Update
+Yes — `docs/Roadmap.md`, `docs/Marketing-Sales.md`, `docs/Product-UX.md`
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+In Progress
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0003, DEC-0004, DEC-0005
+
+### Notes
+The console mockup and its per-employee sidebar/add-employee flow are not to be built now — reference only. Do not scope additional Digital Employee roles beyond the current 8 in this phase; that is a separate, unscoped future research task.
+
+---
+
+## DEC-0027 — Marketing site includes a live grounded demo, a sales chat widget, and an honest industries section; voice/telephony and general workflow-assistant capabilities are logged as roadmap, not built
+
+**Department:** Product / Marketing
+**Status:** Approved
+**Date:** 2026-09-06
+**Approved By:** Founder (Tino) — direction; Claude — implementation under DEC-0003
+
+### Decision
+The marketing site (DEC-0026) includes, beyond the two approved page mockups:
+
+1. A **live widget demo** — the real embeddable chat widget (session-token auth, DEC-0012) wired to a seeded demo tenant with a small real knowledge base, so a visitor talks to an actually-grounded AI Receptionist rather than a scripted mock. The homepage mockup's scripted "try before you hire" role-picker stays as a clearly-labeled **preview/non-live** demo of the other roles, since only the Receptionist is real.
+2. A **pre-sales chat widget** on the site itself, framed as Aether's own Sales Rep Digital Employee (dogfooding the product on its own storefront).
+3. An **honest industries section** — no fabricated client counts, logos, or testimonials. Real numbers get added only once they exist.
+
+Two roadmap items are explicitly **out of scope for this phase**, logged here so they are not lost and not accidentally scoped in later without a spec:
+
+- **Voice/telephony layer** (inbound call answering; outbound calls, e.g. payment reminders). Needs its own architecture — speech-to-text/text-to-speech plus a calling provider — separate from the existing text grounding engine. Not started.
+- **General workflow-assistant capabilities** (sending email as the client, posting content, scheduling). Likely an expansion of the Secretary/Ops Manager role scope. Needs its own spec before any building starts.
+
+### Reason
+A scripted demo that isn't disclosed as scripted would misrepresent the product to exactly the audience (DEC-0026) least equipped to tell the difference; labeling it and backing the Receptionist role with the real, working engine keeps the site's claims verifiable (continuing the standard set by DEC-0017 — never claim an action, or a capability, the system doesn't actually have). A sales widget on the marketing site itself is the cheapest possible proof the product works. Voice and general workflow automation are both real product directions but neither has an architecture or spec yet; building either now would be scoping past what's been designed, which the standing rules for this round explicitly rule out.
+
+### Impact
+- Product
+- Marketing
+- Engineering
+
+### Requires Documentation Update
+Yes — `docs/Roadmap.md`
+
+### Requires Engineering Changes
+Yes
+
+### Implementation Status
+In Progress
+
+### Supersedes
+None
+
+### Related Decisions
+DEC-0004, DEC-0006, DEC-0012, DEC-0017, DEC-0026
+
+### Notes
+Lead capture behind the pricing CTAs ("Choose Managed", "Talk to us") is FR-3 (lead extraction), previously logged in the Roadmap as the top-priority unimplemented Receptionist requirement — this build delivers it via the site rather than the dashboard.
+
 <!-- Append new decisions below this line, in ascending numeric order -->
