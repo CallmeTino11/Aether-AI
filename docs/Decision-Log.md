@@ -4,6 +4,19 @@ This is **not** the Decision Register. The Decision Register (`Decision-Register
 
 ---
 
+## 2026-09-06 — Session 012: Public Marketing Site & Site-Lead Capture
+
+- **Changes made:** Scaffolded the public marketing site (`web/`, a separate Next.js app/Vercel project) reproducing the two approved mockups pixel-for-pixel as real components, wired the homepage's "try before you hire" Receptionist card to a real grounded conversation against a seeded demo tenant (falling back to a labeled scripted preview when not configured), and built lead capture behind the pricing CTAs (FR-3 via the site).
+- **Scope recorded first:** DEC-0026 (SMB target market; marketing site before the client console) and DEC-0027 (live demo, sales chat widget, honest industries section; voice/telephony and workflow-assistant capabilities are roadmap only).
+- **Bug found:** `PgNotificationOutboxRepository.claimDue` hardcoded `kind: "escalation"` on every claimed row — harmless with one kind, would have silently mislabeled every lead notification once a second kind existed. Fixed, with a regression test.
+- **Design choice:** a prospect asking about Aether AI has no business of their own, so site leads got their own table (`signup_leads`) rather than overloading the tenant-scoped `leads` table; their alerts route through the existing notification outbox via one seeded "house" business row, reusing the tested delivery/retry machinery instead of a second pipeline.
+- **Documents modified:** Decision-Register, Architecture, Roadmap, Marketing-Sales, Product-UX, Deployment, Folder-Structure, `ci.yml`, `scripts/setup.sh`
+- **Documents created:** `web/**`, `supabase/migrations/0006_signup_leads.sql`, `src/domain/house-business.ts`, `src/http/leads-handler.ts`, `api/leads.ts`, session 012 record
+- **Decisions created:** DEC-0026, DEC-0027
+- **Decisions referenced:** DEC-0003, DEC-0004, DEC-0005, DEC-0006, DEC-0012, DEC-0015, DEC-0016, DEC-0017, DEC-0024
+- **Implementation changes:** 72 unit tests passing (2 new pure-function tests); integration suite gained 2 new tests (site-lead outbox flow, correctly gated to run for real in CI against Postgres 16, per DEC-0011); `web/` typechecks and builds clean, verified visually against a running `next dev`
+- **Outstanding issues:** See `sessions/2026-09-06-session-012.md` — deployment of both Vercel projects and Supabase provisioning still need the founder's accounts, same blocker the core app has carried since session 002.
+
 ## 2026-08-11 — Session 011: Alert Channels Reconsidered
 
 - **Changes made:** Replaced SMS with Telegram as the recommended alert channel and removed all mandatory providers beyond email. The dashboard now offers only channels with a sender actually configured.
