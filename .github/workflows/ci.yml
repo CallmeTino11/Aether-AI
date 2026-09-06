@@ -25,6 +25,25 @@ jobs:
       - name: Unit tests
         run: npm test
 
+  web:
+    # web/ is a separate Next.js app with its own package.json (DEC-0026),
+    # deployed as its own Vercel project — checked here so a regression in the
+    # marketing site surfaces in CI rather than at deploy time.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Build
+        run: npx next build
+
   integration:
     runs-on: ubuntu-latest
     services:
