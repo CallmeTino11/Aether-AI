@@ -25,6 +25,8 @@ The rest of this document explains what the script is doing and why, and is wort
 
 Only Resend is required. The dashboard offers whichever channels have a sender configured, so leaving Twilio or Telegram blank simply hides that option rather than breaking anything.
 
+**Why Supabase and not a generic Postgres host:** Supabase's Postgres is free at this scale — it isn't an alternative to Postgres, it *is* managed Postgres, plus the auth product this app already depends on. RLS policies (DEC-0007) key off `auth.uid()` and `business_members.user_id` FKs to `auth.users` (Supabase's schema); JWT verification (DEC-0019) is configured for Supabase's JWKS/shared-secret shapes. Moving to a different Postgres host (Neon, Vercel Postgres, Railway, …) would mean rebuilding that auth layer from scratch, not just changing `DATABASE_URL` — confirmed not worth doing for cost reasons alone (2026-09-13).
+
 ### Which alert channel to use
 
 **Email plus Telegram** is the recommended combination, and costs nothing.
