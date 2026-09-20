@@ -87,7 +87,7 @@ npx vercel --prod
 
 `vercel.json` handles routing, the cron schedule, and caching.
 
-**Note on Hobby-tier cron:** free Vercel accounts run cron once per day, which is useless for escalation alerts. The schedule is set to every 2 minutes and needs a Pro account. Alternatively point any external scheduler (cron-job.org, GitHub Actions) at `POST /api/cron` with `Authorization: Bearer $CRON_SECRET`.
+**Note on Hobby-tier cron:** free Vercel accounts only run cron once per day — a more frequent schedule in `vercel.json` fails the deploy outright ("Upgrade to the Pro plan to unlock all Cron Jobs features"), it doesn't just get downgraded. `vercel.json`'s own cron is set to once daily so deploys succeed on Hobby; that alone is too slow for escalation alerts. For real delivery latency, point a free external scheduler — [cron-job.org](https://cron-job.org) works well — at `POST https://<your-deployment>/api/cron` every 1–2 minutes, with header `Authorization: Bearer <CRON_SECRET>`. The daily Vercel cron then just acts as a backstop if the external one ever lapses.
 
 ## 4. First business
 
