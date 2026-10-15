@@ -1,7 +1,20 @@
 # Aether AI — Session Handoff
 
-Shared context for any assistant picking up this project, including the local
-(Chrome-enabled) session. Read this before touching anything.
+Single shared brief for any assistant picking up this project, cloud or local.
+Read this before touching anything. Then read
+`docs/Go-To-Market-Playbook.md`, `docs/Decision-Register.md`, and
+`docs/Conversation-Compression-2026-08-11.md`.
+
+## 0. Founder's mandate
+
+- Goal: a business earning **$200–300/day**, targeting high-income US markets.
+- The founder wants Claude to **take the lead** on product, marketing and
+  outreach, and to do minimal work themselves.
+- Budget: roughly R50–100 upfront, small monthly tools are fine.
+- The founder is **outside the US**, so **no cold calling** — outreach is email
+  and content.
+- Standing safeguards: never send email from the founder's Gmail without
+  review (create **drafts**), and no deletions without confirmation.
 
 ## 1. What Aether AI is
 
@@ -19,6 +32,27 @@ shops). The product thesis has narrowed since the original brief:
 
 Full decision history lives in `docs/Decision-Register.md`. Every product or
 engineering decision gets a permanent `DEC-000X` entry there.
+
+The product itself — the **AI Receptionist**, the first Digital Employee — is
+an embeddable chat widget that answers only from the business's own
+information and escalates anything it does not know. 70 unit and 67
+integration tests pass. It has never been launched.
+
+### Pricing (set 2026-10-15, live in `web/app/pricing/page.tsx`)
+
+| Plan | Monthly | Annual, per month |
+| --- | --- | --- |
+| Essentials | $149 | $127 |
+| Managed | $349 | $297 |
+| Dedicated | Custom | Custom |
+
+$200/day is about $6k/month, roughly 40 Essentials customers.
+
+**Unresolved conflict:** these tiers are still described by *number of roles*
+(Essentials one role, Managed up to three). The owner has since decided the
+product sells **depth of one employee**, because a restaurant wants its
+receptionist to do more, not to hire four of them. The tier copy needs
+rewriting around volume, channels and quality. The prices themselves stand.
 
 ## 2. Repository and architecture
 
@@ -52,7 +86,10 @@ Key invariants:
 | --- | --- |
 | Marketing site | `https://aether-ai-web-mu.vercel.app` |
 | Core API | separate Vercel project (`prj_5j8dew0XbmHRoVRsBFqBUZV9FDiN`) |
-| Supabase project ref | `srputucemndjhwkhmpat` |
+| Vercel team | `team_9ypegHCXozUoYZqDAGS26EdT`, 4 projects — consolidate to one, ask before deleting |
+| Supabase project ref | `srputucemndjhwkhmpat` (eu-west-1) |
+| Payments | None yet, needs Stripe |
+| Self-serve signup | None, businesses are created by SQL |
 | Demo business | Northside Kitchen, `59de4b6c-9969-4606-b3d2-dd0f6e54e01e` |
 | Demo employee (Mia, Receptionist) | `7b69c5e7-013a-4fe5-bf87-4a2f10faa1c3` |
 
@@ -111,20 +148,51 @@ in them.
 
 That result is the gate on everything downstream.
 
-## 6. Known open items
+## 6. Go-to-market
 
-- Rewrite the pricing page to tier by depth, volume and channels rather than
-  number of roles.
-- Build the client console: per-employee sidebar tabs, working add-employee
-  flow, audit log, widget preview. `public/dashboard.html` is a working but
-  unstyled prototype of the data views.
-- Voice and telephony layer. Needs a provider and a card on file.
-- Paid Supabase tier before any real customer.
-- Clean up stray Vercel projects `aether-ai1` and `aether-ai2`.
-- Not started, explicitly deferred: workflow assistant, landing-page agent,
-  free no-signup playground, demo video.
+Full detail in `docs/Go-To-Market-Playbook.md`. In short:
 
-## 7. Working rules
+- Niches: dental and med spas first, then HVAC and plumbing, personal-injury
+  and immigration law, real estate.
+- Metros: Austin, Tampa, Phoenix, Charlotte, Denver. Avoid NYC and LA.
+- Lead source: Google Maps to website to contact email. Qualifier: no live
+  chat already on the site.
+- Offer: free 14-day trial, done-for-you setup, a personalised demo built from
+  the prospect's own website.
+- Cold email from a **separate domain and mailbox**, 30–50 a day after a
+  two-week warm-up, CAN-SPAM compliant.
+- Free channels: Reddit, LinkedIn, Google Business Profile, Product Hunt, G2,
+  Capterra.
+
+## 7. Open items
+
+### Needs the founder
+
+1. Create a Stripe account and hand over the payment links.
+2. Buy a sending domain and mailbox (Google Workspace, about $7/month).
+3. Approve which Vercel project to keep.
+4. A card for a telephony provider, before any voice work.
+5. A paid Supabase tier, before any real customer.
+
+### Needs Claude, in order
+
+1. Run the browser test in section 5 — this gates everything else.
+2. Consolidate to one production Vercel project, deployed end to end.
+3. Rewrite the pricing tiers around depth, volume and channels.
+4. Build self-serve signup, with Stripe checkout once the links exist.
+5. Build "demo from URL" — scrape a prospect's site into a ready demo
+   receptionist.
+6. Build the client console: per-employee sidebar tabs, add-employee flow,
+   audit log, widget preview. `public/dashboard.html` is a working but
+   unstyled prototype of the data views.
+7. Compile the first 50 qualified US leads and create Gmail **drafts** for
+   review. Local session only — needs Chrome.
+8. Lead extraction (FR-3) and the remaining items in the compression doc.
+
+Deferred, not started: voice and telephony, workflow assistant,
+landing-page agent, free no-signup playground, demo video.
+
+## 8. Working rules
 
 - Before trusting a test, break the thing it guards and watch it fail.
 - Verify before reporting anything as complete.
