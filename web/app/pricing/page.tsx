@@ -81,7 +81,7 @@ export default function PricingPage() {
             <div className="plan-card">
               <div className="plan-name">ESSENTIALS</div>
               <div className="plan-price">
-                <span>$X</span>
+                <span>{billing === "m" ? "$149" : "$127"}</span>
                 <span>/mo per role</span>
               </div>
               <div className="plan-desc">
@@ -106,7 +106,7 @@ export default function PricingPage() {
             <div className="plan-card feat">
               <div className="plan-name">MANAGED</div>
               <div className="plan-price">
-                <span>$X</span>
+                <span>{billing === "m" ? "$349" : "$297"}</span>
                 <span>/mo per role</span>
               </div>
               <div className="plan-desc">
