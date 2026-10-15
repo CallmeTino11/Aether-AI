@@ -130,6 +130,18 @@ location, and dress code. So the demo is now worth testing.
 settings** — those collide with the cloud session, which is actively working
 in them.
 
+### Step 0: check the API is healthy first
+
+Open `https://aether-ai-eight-sandy.vercel.app/api/health`.
+
+- **200** — config is complete and the database answers. Go on to the browser
+  test below.
+- **503** — read `missingEnvVars` and `database.reason`. It names the exact
+  problem. Fix that before testing anything, because a widget test against a
+  broken API only produces noise.
+
+The endpoint reports variable *names* and connection status, never values.
+
 ### Browser test script for the local session
 
 1. Open `https://aether-ai-web-mu.vercel.app`.
