@@ -1,0 +1,16 @@
+{
+  // Typecheck-only pass over the Vercel serverless entry points.
+  //
+  // tsconfig.build.json cannot cover them: its rootDir is src/, and widening
+  // that to include api/ would change the dist/ emit layout the deploy relies
+  // on. Vercel compiles api/ itself at deploy time, so without this config a
+  // type error in a handler is found by the platform, in production, instead
+  // of by CI. That is how a broken entry point shipped once already.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src", "api"],
+  "exclude": ["src/__tests__"]
+}

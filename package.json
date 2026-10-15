@@ -5,7 +5,7 @@
   "description": "Aether AI core: Digital Employee domain model and provider-agnostic AI layer",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json",
     "build": "tsc -p tsconfig.build.json",
     "test": "tsc -p tsconfig.json --outDir dist && node --test dist/__tests__/*.test.js",
     "validate": "python3 scripts/validate_repo.py && python3 scripts/validate_decisions.py",
